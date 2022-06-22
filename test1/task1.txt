@@ -1,0 +1,12 @@
+This task consists of two parts: data processing and article reading.
+
+Data Processing:
+Locate "2020-08-01-social-distancing.csv" in the "Data" folder
+The "origin_census_block_group" column is the origin position data
+The "destination_cbgs" column is the destination location dataset
+Since the end location dataset is a collection of multiple location data, it needs to be separated and put on a new line
+For example, the starting point data "10539707003" and the ending point data set ""010030107031":1,"120330012022":1"
+Need to convert to "10539707003", "010030107031", "1" and another line "10539707003", "120330012022", "1"
+
+Article reading:
+There are four articles in the Articles folder.
