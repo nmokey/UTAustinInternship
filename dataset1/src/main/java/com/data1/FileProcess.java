@@ -1,4 +1,4 @@
-package com.fileprocess;
+package com.data1;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -9,7 +9,7 @@ import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvException;
 import java.io.FileWriter;
 
-public class FileProcess {
+public class FileProcess { //taken from test1, NOT YET ADAPTED FOR BOX API
     private List<String[]> list; // each element is a String[] which represents one line of the csv file.
 
     public FileProcess() throws IOException, CsvException {

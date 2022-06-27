@@ -47,12 +47,12 @@ public class FileProcess {
      * @param destination one entry from the destination column of the row, previously separated by commas
      */
     private String[] buildRow(String[] oldRow, String destination) {
-        String[] newRow = new String[5];
+        String[] newRow = new String[3];
         newRow[0] = oldRow[0];
         newRow[1] = destination.substring(1, 13);
         newRow[2] = destination.substring(15, 16);
-        newRow[3] = oldRow[1];
-        newRow[4] = oldRow[2];
+        // newRow[3] = oldRow[1];
+        // newRow[4] = oldRow[2];
         return newRow;
     }
 }

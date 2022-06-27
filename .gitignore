@@ -1,2 +1,3 @@
 *.csv
-.DS-Store
+*.DS_Store
+config.json
