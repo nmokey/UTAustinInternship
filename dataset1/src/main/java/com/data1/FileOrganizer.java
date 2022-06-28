@@ -9,28 +9,27 @@ import com.box.sdk.BoxAPIConnection;
 import com.box.sdk.BoxFile;
 import com.box.sdk.BoxFolder;
 import com.box.sdk.BoxItem;
+import me.tongfei.progressbar.ProgressBar;
 
 public class FileOrganizer {
+    private BoxAPIConnection api;
+    private final String AUTHURL = "https://account.box.com/api/oauth2/authorize?client_id=g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv&redirect_uri=https://google.com&response_type=code";
+    private ProgressBar pb;
+
     public FileOrganizer() throws IOException, InterruptedException {
-        //rearrangeFiles(api);
         BoxAPIConnection api = authorizeAPI();
-        unzipFiles(api); // must generate a new access token/developer token each time to create the API
-                         // connection!
+        // rearrangeFiles(api);
+        pb = new ProgressBar("Unzipping", 730);
+        unzipFiles(api);
     }
 
-    private BoxAPIConnection authorizeAPI() throws IOException{
-        // Reader reader = new FileReader("UTAustinInternship/dataset1/config.json");
-        // String userID = "19746625595";
-        // BoxConfig config = BoxConfig.readFrom(reader);
-        // BoxDeveloperEditionAPIConnection api = new BoxDeveloperEditionAPIConnection.getUserConnection(userID, config, null);
-        String authorizationUrl = "https://account.box.com/api/oauth2/authorize?client_id=g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv&redirect_uri=https://google.com&response_type=code";
-        BoxAPIConnection client = new BoxAPIConnection(
-            "g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv",
-            "SECRET",
-            "AUTHCODE" //must replace every time with a new authCode!
-          );
-        client.refresh();
-        return client;
+    private BoxAPIConnection authorizeAPI() throws IOException {
+        api = new BoxAPIConnection(
+                "g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv",
+                "SECRET",
+                "AUTHCODE" // must replace every time with a new authCode!
+        );
+        return api;
     }
 
     private void rearrangeFiles(BoxAPIConnection api) {
@@ -67,32 +66,30 @@ public class FileOrganizer {
                     BoxFolder monthFolder = ((BoxFolder.Info) monthItem).getResource();
                     for (BoxItem.Info dayItem : monthFolder) {
                         String fileName = dayItem.getName();
-                        if(fileName.substring(fileName.length()-2).equals("gz")){ //if the item hasn't been uncompressed
-                            BoxFile compressedDataFile = ((BoxFile.Info) dayItem).getResource();
+                        if (fileName.substring(fileName.length() - 2).equals("gz")) { // if item hasn't been uncompressed
+                            BoxFile compressedDataFile = (BoxFile) dayItem.getResource();
                             downloadFile(compressedDataFile); // download the .gz file
                             File oldFile = new File(fileName); // recognize local .gz file
                             decompress(fileName); // decompress the .gz file locally
                             File newFile = new File(fileName.substring(0, 32)); // recognize local .csv file
-                            uploadFile(monthFolder, fileName.substring(0, 32), api); // upload new .csv file
+                            uploadFile(monthFolder, fileName.substring(0, 32)); // upload new .csv file
                             oldFile.delete(); // delete local .gz file
                             newFile.delete(); // delete local .csv file
                             compressedDataFile.delete(); // delete old .gz file from Box
                         }
-                        System.out.println("Processed file: " + fileName);
+                        pb.step();
                     }
                 }
             }
         }
     }
 
-    private void uploadFile(BoxFolder location, String fileName, BoxAPIConnection api)
+    private void uploadFile(BoxFolder location, String fileName)
             throws IOException, InterruptedException {
-        // FileInputStream stream = new FileInputStream(fileName);
-        // BoxFile.Info newFileInfo = location.uploadFile(stream, fileName);
-        // stream.close();
         File myFile = new File(fileName);
         FileInputStream stream = new FileInputStream(myFile);
-        BoxFile.Info fileInfo = location.uploadLargeFile(stream, fileName.substring(0, 32), myFile.length());
+        location.uploadLargeFile(stream, fileName.substring(0, 32), myFile.length());
+        stream.close();
     }
 
     private void downloadFile(BoxFile file) throws IOException {
@@ -100,7 +97,6 @@ public class FileOrganizer {
         FileOutputStream stream = new FileOutputStream(info.getName());
         file.download(stream);
         stream.close();
-        System.out.println("Done downloading!");
     }
 
     private void decompress(String name) {
@@ -115,7 +111,9 @@ public class FileOrganizer {
             while ((length = gzis.read(buffer)) > 0) {
                 fos.write(buffer, 0, length);
             }
-            System.out.println("Done decompressing!");
+            fis.close();
+            gzis.close();
+            fos.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
