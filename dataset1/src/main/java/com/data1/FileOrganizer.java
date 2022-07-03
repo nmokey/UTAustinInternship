@@ -13,20 +13,22 @@ import me.tongfei.progressbar.ProgressBar;
 
 public class FileOrganizer {
     private BoxAPIConnection api;
-    private final String AUTHURL = "https://account.box.com/api/oauth2/authorize?client_id=g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv&redirect_uri=https://google.com&response_type=code";
-    private ProgressBar pb;
+    // private final String AUTHURL =
+    // "https://account.box.com/api/oauth2/authorize?client_id=g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv&redirect_uri=https://google.com&response_type=code";
+    private ProgressBar rearrangeProgress, unzipProgress;
 
     public FileOrganizer() throws IOException, InterruptedException {
-        BoxAPIConnection api = authorizeAPI();
-        // rearrangeFiles(api);
-        pb = new ProgressBar("Unzipping", 730);
+        api = authorizeAPI();
+        rearrangeProgress = new ProgressBar("Rearranging files:", 731);
+        rearrangeFiles(api);
+        unzipProgress = new ProgressBar("Unzipping files:", 731);
         unzipFiles(api);
     }
 
     private BoxAPIConnection authorizeAPI() throws IOException {
         api = new BoxAPIConnection(
                 "g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv",
-                "SECRET",
+                "nhg2Qi0VeZX767uhWySRt7KywKu0uKgm",
                 "AUTHCODE" // must replace every time with a new authCode!
         );
         return api;
@@ -47,10 +49,10 @@ public class FileOrganizer {
                                 BoxFile dayFile = ((BoxFile.Info) dayInfo).getResource();
                                 dayFile.move(monthFolder); // Move the .csv to its parent folder
                                 dayFolder.delete(true); // Delete the day folder
+                                rearrangeProgress.step();
                             }
                         }
                     }
-                    System.out.println("Rearranged " + monthItem.getName() + "/" + yearItem.getName()); // Status update
                 }
             }
         }
@@ -66,7 +68,8 @@ public class FileOrganizer {
                     BoxFolder monthFolder = ((BoxFolder.Info) monthItem).getResource();
                     for (BoxItem.Info dayItem : monthFolder) {
                         String fileName = dayItem.getName();
-                        if (fileName.substring(fileName.length() - 2).equals("gz")) { // if item hasn't been uncompressed
+                        if (fileName.substring(fileName.length() - 2).equals("gz")) { // if item hasn't been
+                                                                                      // uncompressed
                             BoxFile compressedDataFile = (BoxFile) dayItem.getResource();
                             downloadFile(compressedDataFile); // download the .gz file
                             File oldFile = new File(fileName); // recognize local .gz file
@@ -77,7 +80,7 @@ public class FileOrganizer {
                             newFile.delete(); // delete local .csv file
                             compressedDataFile.delete(); // delete old .gz file from Box
                         }
-                        pb.step();
+                        unzipProgress.step();
                     }
                 }
             }
