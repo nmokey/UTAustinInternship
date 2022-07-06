@@ -7,6 +7,9 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
@@ -18,28 +21,30 @@ import com.box.sdk.BoxFolder;
 import com.box.sdk.BoxItem;
 import me.tongfei.progressbar.ProgressBar;
 
-public class FileProcess { // taken from test1, NOT YET ADAPTED FOR BOX API
+public class FileProcess {
     private List<String[]> currentList; // each element is a String[] which represents one line of the csv file.
-    private List<String[]> data = new ArrayList<String[]>();
+    private List<String[]> monthlyData = new ArrayList<String[]>();
+    private ArrayList<String> seenOrigins = new ArrayList<>();
     private BoxAPIConnection api;
-    private ProgressBar progress;
+    private ProgressBar overallProgress, dailyProgress;
+    private File currentFile;
 
     // private final String AUTHURL =
     // "https://account.box.com/api/oauth2/authorize?client_id=g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv&redirect_uri=https://google.com&response_type=code";
 
     public FileProcess() throws IOException, CsvException, InterruptedException {
-        progress = new ProgressBar("Aggregating data:", 731);
+        overallProgress = new ProgressBar("Aggregating data:", 731);
         api = authorizeAPI();
         retrieveFiles();
     }
 
     private BoxAPIConnection authorizeAPI() throws IOException {
-        // api = new BoxAPIConnection(
-        // "g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv",
-        // "nhg2Qi0VeZX767uhWySRt7KywKu0uKgm",
-        // "AUTHCODE" // must replace every time with a new authCode!
-        // );
-        api = new BoxAPIConnection("ZFRd2MjWP04UxJrYjV1FSqGn8WImsi6U"); // dev token for testing
+        api = new BoxAPIConnection(
+                "g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv",
+                "nhg2Qi0VeZX767uhWySRt7KywKu0uKgm",
+                "AUTHCODE" // must replace every time with a new authCode!
+        );
+        // api = new BoxAPIConnection("ozyqJRa06MkD6xJgk9DcX5GFuSRKEuPv"); // dev token for testing
         return api;
     }
 
@@ -47,7 +52,6 @@ public class FileProcess { // taken from test1, NOT YET ADAPTED FOR BOX API
         BoxFile.Info info = file.getInfo();
         FileOutputStream stream = new FileOutputStream(info.getName());
         file.download(stream);
-        System.out.println("downloaded file!");
         stream.close();
     }
 
@@ -67,18 +71,28 @@ public class FileProcess { // taken from test1, NOT YET ADAPTED FOR BOX API
                 BoxFolder yearFolder = ((BoxFolder.Info) yearItem).getResource();
                 for (BoxItem.Info monthItem : yearFolder) {
                     BoxFolder monthFolder = ((BoxFolder.Info) monthItem).getResource();
+                    int daycounter = 0;
                     for (BoxItem.Info dayItem : monthFolder) {
+                        if (!monthItem.getName().equals("04")) {
+                            System.out.println(monthItem.getName());
+                            break;
+                        }
+                        if (daycounter > 6) {
+                            continue;
+                        }
                         String fileName = dayItem.getName();
                         BoxFile dayFile = (BoxFile) dayItem.getResource(); // recognize boxfile
                         downloadFile(dayFile); // download CSV from box
-                        File file = new File(fileName); // recognize file locally
+                        currentFile = new File(fileName); // recognize file locally
                         readCSV(fileName); // save CSV contents to list
-                        file.delete(); // delete local file
-                        System.out.println("Added file " + fileName);
-                        progress.step();
+                        currentFile.delete(); // delete local file
+                        daycounter++;
+                        // overallProgress.step();
                     }
-                    writeCSV(monthItem.getName());
-                    uploadFile(monthFolder, "UTAustinInternship/dataset1/month" + monthItem.getName() + ".csv");
+                    if (daycounter == 7 && monthItem.getName().equals("4")) {
+                        writeCSV(monthItem.getName());
+                        uploadFile(monthFolder, "UTAustinInternship/dataset1/month" + monthItem.getName() + ".csv");
+                    }
                 }
             }
         }
@@ -89,45 +103,85 @@ public class FileProcess { // taken from test1, NOT YET ADAPTED FOR BOX API
             CSVReader reader = new CSVReader(new FileReader(fileName));
             currentList = reader.readAll(); // reads CSV into a List<String[]>
             addToData(currentList);
+            reader.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        System.out.println("Done reading!");
+    }
+
+    private void addToData(List<String[]> thisData) {
+        if (monthlyData.isEmpty()) {
+            monthlyData = thisData;
+            Collections.sort(monthlyData, new Comparator<String[]>() {
+                @Override
+                public int compare(String[] o1, String[] o2) {
+                    return o1[0].compareTo(o2[0]);
+                }
+            });
+            for (String[] row : monthlyData) {
+                seenOrigins.add(row[0]);
+            }
+            return;
+        }
+        Collections.sort(seenOrigins);
+        thisData.remove(0); // get rid of headers
+        dailyProgress = new ProgressBar("Processing file " + currentFile.getName(), thisData.size());
+        for (String[] row : thisData) {
+            if (seenOrigins.contains(row[0])) { // if the origin has been seen before
+                String[] monthlyRow = monthlyData.get(Collections.binarySearch(seenOrigins, row[0]));
+                // System.out.println("matched an origin!");
+                int monthlyDevice = Integer.parseInt(monthlyRow[3]);
+                int newDevice = Integer.parseInt(row[3]);
+                monthlyRow[3] = monthlyDevice + newDevice + "";
+                incrementDestinations(row, monthlyRow);
+            } else { // if the origin is a new one
+                int pos = Collections.binarySearch(seenOrigins, row[0]);
+                monthlyData.add(-pos - 1, row);
+                seenOrigins.add(-pos - 1, row[0]);
+                // System.out.println("added a new row!");
+            }
+            dailyProgress.step();
+        }
+    }
+
+    private void incrementDestinations(String[] dailyRow, String[] monthlyRow) {
+        String[] dailyDestinations = dailyRow[13].substring(1, dailyRow[13].length() - 1).split(",");
+        String[] monthlyDestinations = monthlyRow[13].substring(1, monthlyRow[13].length() - 1).split(",");
+        for (String newDest : dailyDestinations) {
+            int destinationCounter = monthlyDestinations.length;
+            for (int i = 0; i < monthlyDestinations.length; i++) {
+                String monthlyDest = monthlyDestinations[i];
+                if (newDest.substring(1, 13).equals(monthlyDest.substring(1, 13))) {
+                    int combinedPass = Integer.parseInt(newDest.split(":")[1])
+                            + Integer.parseInt(monthlyDest.split(":")[1]);
+                    monthlyDest = monthlyDest.substring(0, monthlyDest.length() - 1) + combinedPass;
+                    break; // move onto next newDest
+                }
+                destinationCounter--;
+            }
+            if (destinationCounter == 0) {
+                ArrayList<String> temp = new ArrayList<String>(Arrays.asList(monthlyDestinations));
+                temp.add(newDest);
+                monthlyDestinations = temp.toArray(monthlyDestinations);
+            }
+        }
+        monthlyRow[13] = "{";
+        for (String destination : monthlyDestinations) {
+            monthlyRow[13] += destination + ",";
+        }
+        monthlyRow[13] = monthlyRow[13].substring(0, monthlyRow[13].length() - 1) + "}";
+        // System.out.println("incremented destination!");
     }
 
     private void writeCSV(String month) throws IOException {
         CSVWriter writer = new CSVWriter(new FileWriter("UTAustinInternship/dataset1/month" + month + ".csv"));
-        for (String[] row : data) { // for each row in the data list:
-            writer.writeNext(row);
-        }
-        writer.close();
-    }
-
-    private void addToData(List<String[]> thisList) {
-        thisList.remove(0); // get rid of first row to avoid out-of-bounds errors, who really needs headers
-        for (int a = 0; a < thisList.size(); a++) {
-            String[] row = thisList.get(a); //row of the raw CSV file
-            String[] allDestinations = row[13].substring(1, row[13].length() - 1).split(","); // splitting destinations
-            for (int i = 0; i < data.size(); i++) {
-                String[] savedRow = data.get(i);
-                if (savedRow[1].equals(row[0])) { // origins match
-                    savedRow[0] = Integer.parseInt(savedRow[3]) + Integer.parseInt(row[3]) + ""; // increment
-                                                                                                 // devicecount
-                    for (int dest = 0; dest < allDestinations.length; dest++) {// String destination:allDestinations){
-                        String destination = allDestinations[dest];
-                        if (savedRow[2].equals(destination.substring(1, 13))) {
-                            savedRow[3] = Integer.parseInt(savedRow[3])
-                                    + Integer.parseInt(destination.substring(15, 16)) + ""; // increment destination #
-                        }
-                    }
-                } else { // origin not found
-                    for (int dest = 0; dest < allDestinations.length; dest++) {// String destination:allDestinations){
-                        String destination = allDestinations[dest];
-                        data.add(buildRow(row, destination));
-                    }
-                }
+        for (String[] row : monthlyData) { // for each row in the data list:
+            String[] destinations = row[13].substring(1, row[13].length() - 1).split(",");
+            for (String destination : destinations) {
+                writer.writeNext(buildRow(row, destination));
             }
         }
+        writer.close();
     }
 
     /**
