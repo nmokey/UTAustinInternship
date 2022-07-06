@@ -30,7 +30,7 @@ public class FileProcess {
 
     private void writeCSV() throws IOException {
         CSVWriter writer = new CSVWriter(new FileWriter("UTAustinInternship/test1/demo/data/output.csv"));
-        writer.writeNext(buildRow(list.get(0), " destination    "));
+        writer.writeNext(new String[]{"device_count","origin","destination","destination_count"});
         list.remove(0);
         for (String[] row : list) {
             String[] allDestinations = row[13].substring(1, row[13].length()-1).split(","); // splitting destination string into each destination
@@ -47,12 +47,11 @@ public class FileProcess {
      * @param destination one entry from the destination column of the row, previously separated by commas
      */
     private String[] buildRow(String[] oldRow, String destination) {
-        String[] newRow = new String[3];
-        newRow[0] = oldRow[0];
-        newRow[1] = destination.substring(1, 13);
-        newRow[2] = destination.substring(15, 16);
-        // newRow[3] = oldRow[1];
-        // newRow[4] = oldRow[2];
+        String[] newRow = new String[4];
+        newRow[0]= oldRow[3];
+        newRow[1] = oldRow[0];
+        newRow[2] = destination.substring(1, 13);
+        newRow[3] = destination.substring(15, 16);
         return newRow;
     }
 }
