@@ -30,16 +30,14 @@ public class FileProcess {
     private BoxAPIConnection api;
     private ProgressBar dailyProgress, writingProgress;
     private File currentFile;
-    private String year, month, days, START_DATE;
-    // private final String AUTHURL =
-    // "https://account.box.com/api/oauth2/authorize?client_id=g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv&redirect_uri=https://google.com&response_type=code";
-
-    public FileProcess(String year, String month, String days, String authcode)
+    private String year, month, days, startDate;
+    
+    public FileProcess(String year, String month, String days, String startDate, String authcode)
             throws IOException, CsvException, InterruptedException {
         this.year = year;
         this.month = month;
         this.days = days;
-        System.out.println("created instance of fileprocess!"+ year+month+days);
+        this.startDate = startDate;
         api = authorizeAPI(authcode);
         retrieveFiles();
     }
@@ -49,16 +47,16 @@ public class FileProcess {
                 "g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv",
                 "nhg2Qi0VeZX767uhWySRt7KywKu0uKgm",
                 authcode);
-        // api = new BoxAPIConnection("8Ho3wtVuqZ7ObZZnFWzvF07zGhdoiS3W"); // for
-        // testing
+        AppScreen.updateStatus(" ✓ Established API connection", true);
+        // api = new BoxAPIConnection("DEVTOKEN"); // for testing
         return api;
     }
 
     /*
      * Currently this method is customized to only aggregate certain periods of
      * time.
-     * To change which days are aggregated, adjust the final instance variables
-     * MONTH, DAY, and YEAR.
+     * To change which days are aggregated, adjust the instance variables
+     * year, month, days, and startDate.
      */
     private void retrieveFiles() throws IOException, CsvException, InterruptedException {
         BoxFolder rootFolder = BoxFolder.getRootFolder(api);
@@ -67,17 +65,18 @@ public class FileProcess {
             for (BoxItem.Info yearItem : dataFolder) {
                 BoxFolder yearFolder = ((BoxFolder.Info) yearItem).getResource();
                 for (BoxItem.Info monthItem : yearFolder) {
-                    if (!yearItem.getName().equals(year)) {
+                    if (!yearItem.getName().equals(year)) { //check for correct year
                         break;
                     }
                     BoxFolder monthFolder = ((BoxFolder.Info) monthItem).getResource();
-                    int daycounter = 0;
+                    int currentDay = 0;
                     for (BoxItem.Info dayItem : monthFolder) {
-                        if (!monthItem.getName().equals(month)) {
+                        currentDay++;
+                        if (!monthItem.getName().equals(month)) { //check for correct month
                             break;
                         }
-                        if (daycounter > Integer.parseInt(days) - 1) {
-                            continue;
+                        if (currentDay < Integer.parseInt(startDate) || currentDay > Integer.parseInt(days) + Integer.parseInt(startDate)-1) { //check for correct date range
+                            continue; 
                         }
                         currentList = null;
                         dailyProgress = null;
@@ -88,11 +87,13 @@ public class FileProcess {
                         readCSV(fileName); // save CSV contents to list
                         currentFile.delete(); // delete local file
                         addToData(currentList);
-                        daycounter++;
+                        AppScreen.updateStatus("Processed file "+fileName, true);
                     }
-                    if (daycounter == Integer.parseInt(days) && monthItem.getName().equals(month + "")) {
+                    if (currentDay == Integer.parseInt(days)+Integer.parseInt(startDate) && monthItem.getName().equals(month + "")) {
                         writeCSV(monthItem.getName());
-                        uploadFile(monthFolder, "UTAustinInternship/dataset1/month" + monthItem.getName() + ".csv");
+                        AppScreen.updateStatus("Wrote csv month"+monthItem.getName()+".csv", true);
+                        AppScreen.updateStatus(" ✓ Done processing!", true);
+                        //uploadFile(monthFolder, "UTAustinInternship/dataset1/month" + monthItem.getName() + ".csv");
                     }
                 }
             }

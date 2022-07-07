@@ -13,8 +13,6 @@ import me.tongfei.progressbar.ProgressBar;
 
 public class FileOrganizer {
     private BoxAPIConnection api;
-    // private final String AUTHURL =
-    // "https://account.box.com/api/oauth2/authorize?client_id=g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv&redirect_uri=https://google.com&response_type=code";
     private ProgressBar rearrangeProgress, unzipProgress;
 
     public FileOrganizer(String authcode) throws IOException, InterruptedException {
@@ -31,8 +29,7 @@ public class FileOrganizer {
                 "g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv",
                 "nhg2Qi0VeZX767uhWySRt7KywKu0uKgm",
                 authcode);
-        // api = new BoxAPIConnection("8Ho3wtVuqZ7ObZZnFWzvF07zGhdoiS3W"); // for
-        // testing
+        // api = new BoxAPIConnection("DEVTOKEN"); // for testing
         return api;
 
     }
