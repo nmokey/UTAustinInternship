@@ -31,7 +31,6 @@ public class FileProcess {
     private ProgressBar dailyProgress, writingProgress;
     private File currentFile;
     private final int YEAR = 2019, MONTH = 01, DAYS = 31, START_DATE = 1;
-
     // private final String AUTHURL =
     // "https://account.box.com/api/oauth2/authorize?client_id=g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv&redirect_uri=https://google.com&response_type=code";
 
@@ -47,7 +46,8 @@ public class FileProcess {
                     "g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv",
                     "nhg2Qi0VeZX767uhWySRt7KywKu0uKgm",
                     authcode);
-            // api = new BoxAPIConnection("8Ho3wtVuqZ7ObZZnFWzvF07zGhdoiS3W"); // for testing
+            // api = new BoxAPIConnection("8Ho3wtVuqZ7ObZZnFWzvF07zGhdoiS3W"); // for
+            // testing
             return api;
         } catch (Exception e) {
             System.out.println("\nInvalid authcode!");
@@ -102,6 +102,7 @@ public class FileProcess {
 
     private void addToData(List<String[]> thisData) {
         dailyProgress = new ProgressBar("Processing file " + currentFile.getName(), thisData.size());
+        thisData.remove(0); // Get rid of headers to avoid IndexOutOfBounds
         if (monthlyData.isEmpty()) {
             monthlyData = thisData;
             Collections.sort(monthlyData, new Comparator<String[]>() { // Sort monthlyData by origin
@@ -116,7 +117,6 @@ public class FileProcess {
             }
             return;
         }
-        thisData.remove(0); // Get rid of headers to avoid IndexOutOfBounds
         for (String[] row : thisData) {
             int originIndex = Collections.binarySearch(seenOrigins, row[0]);
             if (originIndex > -1) { // if the origin has been seen before
@@ -189,7 +189,7 @@ public class FileProcess {
     private void writeCSV(String month) throws IOException {
         CSVWriter writer = new CSVWriter(new FileWriter("UTAustinInternship/dataset1/month" + month + ".csv"));
         writingProgress = new ProgressBar("Writing csv file: ", monthlyData.size());
-        writer.writeNext(new String[] { "device_count", "origin", "destination", "destination_count" });
+        writer.writeNext(new String[] { "device_count", "origin_census_block_group", "destination", "destination_count" });
         for (String[] row : monthlyData) { // for each row in the data list:
             String[] destinations = row[13].substring(1, row[13].length() - 1).split(",");
             for (String destination : destinations) {
@@ -204,13 +204,8 @@ public class FileProcess {
         String[] newRow = new String[4];
         newRow[0] = oldRow[3];
         newRow[1] = oldRow[0];
-        if (destination.length() > 15) {
-            newRow[2] = destination.substring(1, 13);
-            newRow[3] = destination.substring(15);
-        } else {
-            newRow[2] = destination;
-            newRow[3] = "Error on this line.";
-        }
+        newRow[2] = destination.substring(1, 13);
+        newRow[3] = destination.substring(15);
         return newRow;
     }
 }
