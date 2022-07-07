@@ -13,13 +13,14 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import com.opencsv.CSVReader;
-import com.opencsv.CSVWriter;
-import com.opencsv.exceptions.CsvException;
 import com.box.sdk.BoxAPIConnection;
 import com.box.sdk.BoxFile;
 import com.box.sdk.BoxFolder;
 import com.box.sdk.BoxItem;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVWriter;
+import com.opencsv.exceptions.CsvException;
+
 import me.tongfei.progressbar.ProgressBar;
 
 public class FileProcess {
@@ -29,7 +30,7 @@ public class FileProcess {
     private BoxAPIConnection api;
     private ProgressBar dailyProgress, writingProgress;
     private File currentFile;
-    private final int YEAR = 2019, MONTH = 11, DAYS = 7;
+    private final int YEAR = 2019, MONTH = 01, DAYS = 31, START_DATE = 1;
 
     // private final String AUTHURL =
     // "https://account.box.com/api/oauth2/authorize?client_id=g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv&redirect_uri=https://google.com&response_type=code";
@@ -40,14 +41,18 @@ public class FileProcess {
     }
 
     private BoxAPIConnection authorizeAPI() throws IOException {
-        api = new BoxAPIConnection(
-                "g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv",
-                "nhg2Qi0VeZX767uhWySRt7KywKu0uKgm",
-                "AUTHCODE" // must replace every time with a new authCode!
-        );
-        // api = new BoxAPIConnection("8Ho3wtVuqZ7ObZZnFWzvF07zGhdoiS3W"); // for
-        // testing
-        return api;
+        try {
+            String authcode = new String(System.console().readPassword("ENTER AUTHCODE: "));
+            api = new BoxAPIConnection(
+                    "g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv",
+                    "nhg2Qi0VeZX767uhWySRt7KywKu0uKgm",
+                    authcode);
+            // api = new BoxAPIConnection("8Ho3wtVuqZ7ObZZnFWzvF07zGhdoiS3W"); // for testing
+            return api;
+        } catch (Exception e) {
+            System.out.println("\nInvalid authcode!");
+            return authorizeAPI();
+        }
     }
 
     /*
@@ -86,7 +91,7 @@ public class FileProcess {
                         addToData(currentList);
                         daycounter++;
                     }
-                    if (daycounter == DAYS && monthItem.getName().equals(MONTH + 11 + "")) {
+                    if (daycounter == DAYS && monthItem.getName().equals(MONTH + "")) {
                         writeCSV(monthItem.getName());
                         uploadFile(monthFolder, "UTAustinInternship/dataset1/month" + monthItem.getName() + ".csv");
                     }
@@ -96,8 +101,8 @@ public class FileProcess {
     }
 
     private void addToData(List<String[]> thisData) {
+        dailyProgress = new ProgressBar("Processing file " + currentFile.getName(), thisData.size());
         if (monthlyData.isEmpty()) {
-            dailyProgress = new ProgressBar("Initializing aggregation: ", thisData.size());
             monthlyData = thisData;
             Collections.sort(monthlyData, new Comparator<String[]>() { // Sort monthlyData by origin
                 @Override
@@ -112,7 +117,6 @@ public class FileProcess {
             return;
         }
         thisData.remove(0); // Get rid of headers to avoid IndexOutOfBounds
-        dailyProgress = new ProgressBar("Processing file " + currentFile.getName(), thisData.size());
         for (String[] row : thisData) {
             int originIndex = Collections.binarySearch(seenOrigins, row[0]);
             if (originIndex > -1) { // if the origin has been seen before
