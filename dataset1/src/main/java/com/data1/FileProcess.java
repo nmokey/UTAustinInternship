@@ -30,29 +30,28 @@ public class FileProcess {
     private BoxAPIConnection api;
     private ProgressBar dailyProgress, writingProgress;
     private File currentFile;
-    private final int YEAR = 2019, MONTH = 01, DAYS = 31, START_DATE = 1;
+    private String year, month, days, START_DATE;
     // private final String AUTHURL =
     // "https://account.box.com/api/oauth2/authorize?client_id=g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv&redirect_uri=https://google.com&response_type=code";
 
-    public FileProcess() throws IOException, CsvException, InterruptedException {
-        api = authorizeAPI();
+    public FileProcess(String year, String month, String days, String authcode)
+            throws IOException, CsvException, InterruptedException {
+        this.year = year;
+        this.month = month;
+        this.days = days;
+        System.out.println("created instance of fileprocess!"+ year+month+days);
+        api = authorizeAPI(authcode);
         retrieveFiles();
     }
 
-    private BoxAPIConnection authorizeAPI() throws IOException {
-        try {
-            String authcode = new String(System.console().readPassword("ENTER AUTHCODE: "));
-            api = new BoxAPIConnection(
-                    "g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv",
-                    "nhg2Qi0VeZX767uhWySRt7KywKu0uKgm",
-                    authcode);
-            // api = new BoxAPIConnection("8Ho3wtVuqZ7ObZZnFWzvF07zGhdoiS3W"); // for
-            // testing
-            return api;
-        } catch (Exception e) {
-            System.out.println("\nInvalid authcode!");
-            return authorizeAPI();
-        }
+    private BoxAPIConnection authorizeAPI(String authcode) throws IOException {
+        api = new BoxAPIConnection(
+                "g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv",
+                "nhg2Qi0VeZX767uhWySRt7KywKu0uKgm",
+                authcode);
+        // api = new BoxAPIConnection("8Ho3wtVuqZ7ObZZnFWzvF07zGhdoiS3W"); // for
+        // testing
+        return api;
     }
 
     /*
@@ -68,16 +67,16 @@ public class FileProcess {
             for (BoxItem.Info yearItem : dataFolder) {
                 BoxFolder yearFolder = ((BoxFolder.Info) yearItem).getResource();
                 for (BoxItem.Info monthItem : yearFolder) {
-                    if (!yearItem.getName().equals(YEAR + "")) {
+                    if (!yearItem.getName().equals(year)) {
                         break;
                     }
                     BoxFolder monthFolder = ((BoxFolder.Info) monthItem).getResource();
                     int daycounter = 0;
                     for (BoxItem.Info dayItem : monthFolder) {
-                        if (!monthItem.getName().equals(MONTH + "")) {
+                        if (!monthItem.getName().equals(month)) {
                             break;
                         }
-                        if (daycounter > DAYS - 1) {
+                        if (daycounter > Integer.parseInt(days) - 1) {
                             continue;
                         }
                         currentList = null;
@@ -91,7 +90,7 @@ public class FileProcess {
                         addToData(currentList);
                         daycounter++;
                     }
-                    if (daycounter == DAYS && monthItem.getName().equals(MONTH + "")) {
+                    if (daycounter == Integer.parseInt(days) && monthItem.getName().equals(month + "")) {
                         writeCSV(monthItem.getName());
                         uploadFile(monthFolder, "UTAustinInternship/dataset1/month" + monthItem.getName() + ".csv");
                     }
@@ -189,7 +188,8 @@ public class FileProcess {
     private void writeCSV(String month) throws IOException {
         CSVWriter writer = new CSVWriter(new FileWriter("UTAustinInternship/dataset1/month" + month + ".csv"));
         writingProgress = new ProgressBar("Writing csv file: ", monthlyData.size());
-        writer.writeNext(new String[] { "device_count", "origin_census_block_group", "destination", "destination_count" });
+        writer.writeNext(
+                new String[] { "device_count", "origin_census_block_group", "destination", "destination_count" });
         for (String[] row : monthlyData) { // for each row in the data list:
             String[] destinations = row[13].substring(1, row[13].length() - 1).split(",");
             for (String destination : destinations) {

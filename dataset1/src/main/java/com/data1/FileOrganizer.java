@@ -17,21 +17,24 @@ public class FileOrganizer {
     // "https://account.box.com/api/oauth2/authorize?client_id=g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv&redirect_uri=https://google.com&response_type=code";
     private ProgressBar rearrangeProgress, unzipProgress;
 
-    public FileOrganizer() throws IOException, InterruptedException {
-        api = authorizeAPI();
+    public FileOrganizer(String authcode) throws IOException, InterruptedException {
+        api = authorizeAPI(authcode);
         rearrangeProgress = new ProgressBar("Rearranging files:", 731);
         rearrangeFiles(api);
         unzipProgress = new ProgressBar("Unzipping files:", 731);
         unzipFiles(api);
+        System.out.println("done orgainzing files!");
     }
 
-    private BoxAPIConnection authorizeAPI() throws IOException {
+    private BoxAPIConnection authorizeAPI(String authcode) throws IOException {
         api = new BoxAPIConnection(
                 "g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv",
                 "nhg2Qi0VeZX767uhWySRt7KywKu0uKgm",
-                "AUTHCODE" // must replace every time with a new authCode!
-        );
+                authcode);
+        // api = new BoxAPIConnection("8Ho3wtVuqZ7ObZZnFWzvF07zGhdoiS3W"); // for
+        // testing
         return api;
+
     }
 
     private void rearrangeFiles(BoxAPIConnection api) {
