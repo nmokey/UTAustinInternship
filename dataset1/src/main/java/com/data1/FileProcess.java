@@ -87,12 +87,12 @@ public class FileProcess {
                         readCSV(fileName); // save CSV contents to list
                         currentFile.delete(); // delete local file
                         addToData(currentList);
-                        AppScreen.updateStatus("Processed file "+fileName, true);
+                        AppScreen.updateStatus(" ✓ Processed file "+fileName, true);
                     }
-                    if (currentDay == Integer.parseInt(days)+Integer.parseInt(startDate) && monthItem.getName().equals(month + "")) {
+                    if (currentDay == Integer.parseInt(days)+Integer.parseInt(startDate)-1 && monthItem.getName().equals(month + "")) {
                         writeCSV(monthItem.getName());
-                        AppScreen.updateStatus("Wrote csv month"+monthItem.getName()+".csv", true);
-                        AppScreen.updateStatus(" ✓ Done processing!", true);
+                        AppScreen.updateStatus(" ✓ Wrote csv month"+monthItem.getName()+".csv", true);
+                        AppScreen.updateStatus("Done processing!", true);
                         //uploadFile(monthFolder, "UTAustinInternship/dataset1/month" + monthItem.getName() + ".csv");
                     }
                 }

@@ -25,11 +25,12 @@ import com.opencsv.exceptions.CsvException;
 
 public class AppScreen {
     private JFrame frame = new JFrame("Data Manager App");
-    private JButton organizeButton = new JButton("Organize Files"), processButton = new JButton("Process files");
-    private static JTextArea statusField = new JTextArea();
     private final int DIMENSION_HEIGHT = 500, DIMENSION_WIDTH = 800;
-    private Image icon = new ImageIcon("UTAustinInternship/dataset1/images/longhornsWhite.png").getImage();
+    private final String AUTH_URL = "https://account.box.com/api/oauth2/authorize?client_id=g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv&redirect_uri=https://google.com&response_type=code";
+    private static JTextArea statusField = new JTextArea();
+    private JButton organizeButton = new JButton("Organize Files"), processButton = new JButton("Process data");
     private JLabel background = new JLabel(new ImageIcon("UTAustinInternship/dataset1/images/appBackground.png"));
+    private Image icon = new ImageIcon("UTAustinInternship/dataset1/images/longhornsWhite.png").getImage();
 
     public AppScreen() {
         setButtons();
@@ -39,7 +40,7 @@ public class AppScreen {
     }
 
     public static void updateStatus(String message, boolean newline) {
-        statusField.setText(newline?message + "\n" + statusField.getText():message+statusField.getText());
+        statusField.setText(newline ? message + "\n" + statusField.getText() : message + statusField.getText());
     }
 
     private void configureFrame() {
@@ -50,13 +51,13 @@ public class AppScreen {
     }
 
     private void setButtons() {
-        organizeButton.setBounds(DIMENSION_WIDTH / 6, DIMENSION_HEIGHT / 3, 200, 40);
-        processButton.setBounds(DIMENSION_WIDTH * 1 / 2, DIMENSION_HEIGHT / 3, 200, 40);
+        organizeButton.setBounds(DIMENSION_WIDTH *3/16, DIMENSION_HEIGHT *7/20, 200, 40);
+        organizeButton.setFont(new Font("Helvetica Neue",Font.BOLD,14));
+        organizeButton.setForeground(new Color(191, 87, 0));
         organizeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    java.awt.Desktop.getDesktop().browse(java.net.URI.create(
-                            "https://account.box.com/api/oauth2/authorize?client_id=g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv&redirect_uri=https://google.com&response_type=code"));
+                    java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));
                     String authcode = getAuthcode();
                     new FileOrganizer(authcode);
                 } catch (IOException | InterruptedException e1) {
@@ -64,17 +65,19 @@ public class AppScreen {
                 }
             }
         });
+        processButton.setBounds(DIMENSION_WIDTH * 9/16, DIMENSION_HEIGHT *7/20, 200, 40);
+        processButton.setFont(new Font("Helvetica Neue",Font.BOLD,14));
+        processButton.setForeground(new Color(191, 87, 0));
         processButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
                     String[] range = getDateRange();
                     String yearInput = range[0], monthInput = range[1], dayInput = range[2], startInput = range[3];
-                    updateStatus("Enter authcode obtained from browser",true);
-                    java.awt.Desktop.getDesktop().browse(java.net.URI.create(
-                            "https://account.box.com/api/oauth2/authorize?client_id=g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv&redirect_uri=https://google.com&response_type=code"));
+                    updateStatus("Enter authcode obtained from browser", true);
+                    java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));
                     String authcode = getAuthcode();
-                    updateStatus("See terminal for progress details.",true);
-                    updateStatus("Processing files...",true);
+                    updateStatus("See terminal for progress details.", true);
+                    updateStatus("Processing files...", true);
                     new FileProcess(yearInput, monthInput, dayInput, startInput, authcode);
                 } catch (IOException | CsvException | InterruptedException e1) {
                     e1.printStackTrace();
@@ -105,7 +108,7 @@ public class AppScreen {
         authPanel.add(authField);
         JOptionPane.showConfirmDialog(frame, authPanel, "OAuth2.0 Authorization",
                 JOptionPane.OK_CANCEL_OPTION);
-        updateStatus(" ✓ ",false);
+        updateStatus(" ✓ ", false);
         return new String(authField.getPassword());
     }
 
@@ -124,14 +127,14 @@ public class AppScreen {
         daySelection.add(Box.createHorizontalStrut(10));
         daySelection.add(new JLabel("Start date :"));
         daySelection.add(startDate = new JTextField("1", 2));
-        updateStatus("Enter date range to aggregate",true);
+        updateStatus("Enter date range to aggregate", true);
         JOptionPane.showConfirmDialog(frame, daySelection,
                 "Enter date range: ", JOptionPane.OK_CANCEL_OPTION);
         range[0] = year.getText();
         range[1] = month.getText();
         range[2] = days.getText();
         range[3] = startDate.getText();
-        updateStatus(" ✓ ",false);
+        updateStatus(" ✓ ", false);
         return range;
     }
 }
