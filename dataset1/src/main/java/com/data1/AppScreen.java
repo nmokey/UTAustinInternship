@@ -40,8 +40,13 @@ public class AppScreen {
         frame.setVisible(true);
     }
 
-    public static void updateStatus(String message, boolean newline) {
-        statusField.setText(newline ? message + "\n" + statusField.getText() : message + statusField.getText());
+    public static void updateStatus(String message) {
+        statusField.setText(message + "\n" + statusField.getText());
+        statusField.update(statusField.getGraphics());
+    }
+
+    public static void completeTask(){
+        statusField.setText(" ✓ "+statusField.getText());
         statusField.update(statusField.getGraphics());
     }
 
@@ -75,7 +80,7 @@ public class AppScreen {
                 try {
                     String[] range = getDateRange();
                     String yearInput = range[0], monthInput = range[1], dayInput = range[2], startInput = range[3];
-                    updateStatus("Enter authcode obtained from browser", true);
+                    updateStatus("Enter authcode obtained from browser");
                     java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));
                     String authcode = getAuthcode();
                     new FileProcess(yearInput, monthInput, dayInput, startInput, authcode);
@@ -108,7 +113,7 @@ public class AppScreen {
         authPanel.add(authField);
         JOptionPane.showConfirmDialog(frame, authPanel, "OAuth 2.0 Authorization",
                 JOptionPane.OK_CANCEL_OPTION);
-        updateStatus(" ✓ ", false);
+        completeTask();        
         return new String(authField.getPassword());
     }
 
@@ -129,14 +134,14 @@ public class AppScreen {
         daySelection.add(Box.createHorizontalStrut(10));
         daySelection.add(new JLabel("Start date :"));
         daySelection.add(startDate = new JTextField("1", 2));
-        updateStatus("Enter date range to aggregate", true);
+        updateStatus("Enter date range to aggregate");
         JOptionPane.showConfirmDialog(frame, daySelection,
                 "Enter date range: ", JOptionPane.OK_CANCEL_OPTION);
         range[0] = (String) year.getSelectedItem();
         range[1] = month.getText();
         range[2] = days.getText();
         range[3] = startDate.getText();
-        updateStatus(" ✓ ", false);
+        completeTask();
         return range;
     }
 }

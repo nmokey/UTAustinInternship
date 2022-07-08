@@ -42,11 +42,12 @@ public class FileProcess {
     }
 
     private BoxAPIConnection authorizeAPI(String authcode) throws IOException {
+        AppScreen.updateStatus("Establishing API connection");
         api = new BoxAPIConnection(
                 "g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv",
                 "nhg2Qi0VeZX767uhWySRt7KywKu0uKgm",
                 authcode);
-        AppScreen.updateStatus(" ✓ Established API connection", true);
+        AppScreen.completeTask();
         // api = new BoxAPIConnection("DEVTOKEN"); // for testing
         return api;
     }
@@ -58,8 +59,8 @@ public class FileProcess {
      * year, month, days, and startDate.
      */
     private void retrieveFiles() throws IOException, CsvException, InterruptedException {
-        AppScreen.updateStatus("See terminal for progress details.", true);
-        AppScreen.updateStatus("==========Processing files==========", true);
+        AppScreen.updateStatus("See terminal for progress details.");
+        AppScreen.updateStatus("==========Processing files==========");
         BoxFolder rootFolder = BoxFolder.getRootFolder(api);
         for (BoxItem.Info dataItem : rootFolder) {
             BoxFolder dataFolder = ((BoxFolder.Info) dataItem).getResource();
@@ -85,22 +86,19 @@ public class FileProcess {
                         currentList = null;
                         dailyProgress = null;
                         String fileName = dayItem.getName();
-                        AppScreen.updateStatus("Processing file " + fileName, true);
+                        AppScreen.updateStatus("Processing file " + fileName);
                         BoxFile dayFile = (BoxFile) dayItem.getResource(); // recognize boxfile
                         downloadFile(dayFile); // download CSV from box
                         currentFile = new File(fileName); // recognize file locally
                         readCSV(fileName); // save CSV contents to list
                         currentFile.delete(); // delete local file
                         addToData(currentList);
-                        AppScreen.updateStatus(" ✓ ", false);
+                        AppScreen.completeTask();
                     }
                     if (currentDay == Integer.parseInt(days) + Integer.parseInt(startDate)
                             && monthItem.getName().equals(month + "")) {
                         writeCSV(monthItem.getName());
-                        AppScreen.updateStatus(" ✓ Wrote file month" + monthItem.getName() + ".csv", true);
-                        AppScreen.updateStatus("==========Done processing!==========", true);
-                        // uploadFile(monthFolder, "UTAustinInternship/dataset1/month" +
-                        // monthItem.getName() + ".csv");
+                        AppScreen.updateStatus("==========Done processing!==========");
                     }
                 }
             }
@@ -185,6 +183,7 @@ public class FileProcess {
     }
 
     private void writeCSV(String month) throws IOException {
+        AppScreen.updateStatus("Writing file month" + month + ".csv");
         CSVWriter writer = new CSVWriter(new FileWriter("UTAustinInternship/dataset1/month" + month + ".csv"));
         writingProgress = new ProgressBar("Writing csv file: ", monthlyData.size());
         writer.writeNext(
@@ -197,6 +196,7 @@ public class FileProcess {
             writingProgress.step();
         }
         writer.close();
+        AppScreen.completeTask();
     }
 
     private String[] buildRow(String[] oldRow, String destination) {
