@@ -1,7 +1,6 @@
 package com.data1;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -31,7 +30,7 @@ public class FileProcess {
     private ProgressBar dailyProgress, writingProgress;
     private File currentFile;
     private String year, month, days, startDate;
-    
+
     public FileProcess(String year, String month, String days, String startDate, String authcode)
             throws IOException, CsvException, InterruptedException {
         this.year = year;
@@ -59,41 +58,49 @@ public class FileProcess {
      * year, month, days, and startDate.
      */
     private void retrieveFiles() throws IOException, CsvException, InterruptedException {
+        AppScreen.updateStatus("See terminal for progress details.", true);
+        AppScreen.updateStatus("==========Processing files==========", true);
         BoxFolder rootFolder = BoxFolder.getRootFolder(api);
         for (BoxItem.Info dataItem : rootFolder) {
             BoxFolder dataFolder = ((BoxFolder.Info) dataItem).getResource();
             for (BoxItem.Info yearItem : dataFolder) {
                 BoxFolder yearFolder = ((BoxFolder.Info) yearItem).getResource();
                 for (BoxItem.Info monthItem : yearFolder) {
-                    if (!yearItem.getName().equals(year)) { //check for correct year
+                    if (!yearItem.getName().equals(year)) { // check for correct year
                         break;
                     }
                     BoxFolder monthFolder = ((BoxFolder.Info) monthItem).getResource();
                     int currentDay = 0;
                     for (BoxItem.Info dayItem : monthFolder) {
                         currentDay++;
-                        if (!monthItem.getName().equals(month)) { //check for correct month
+                        if (!monthItem.getName().equals(month)) { // check for correct month
                             break;
                         }
-                        if (currentDay < Integer.parseInt(startDate) || currentDay > Integer.parseInt(days) + Integer.parseInt(startDate)-1) { //check for correct date range
-                            continue; 
+                        if (currentDay < Integer.parseInt(startDate)) { // check for correct date range
+                            continue;
+                        }
+                        if (currentDay > Integer.parseInt(days) + Integer.parseInt(startDate) - 1) {
+                            break;
                         }
                         currentList = null;
                         dailyProgress = null;
                         String fileName = dayItem.getName();
+                        AppScreen.updateStatus("Processing file " + fileName, true);
                         BoxFile dayFile = (BoxFile) dayItem.getResource(); // recognize boxfile
                         downloadFile(dayFile); // download CSV from box
                         currentFile = new File(fileName); // recognize file locally
                         readCSV(fileName); // save CSV contents to list
                         currentFile.delete(); // delete local file
                         addToData(currentList);
-                        AppScreen.updateStatus(" ✓ Processed file "+fileName, true);
+                        AppScreen.updateStatus(" ✓ ", false);
                     }
-                    if (currentDay == Integer.parseInt(days)+Integer.parseInt(startDate)-1 && monthItem.getName().equals(month + "")) {
+                    if (currentDay == Integer.parseInt(days) + Integer.parseInt(startDate)
+                            && monthItem.getName().equals(month + "")) {
                         writeCSV(monthItem.getName());
-                        AppScreen.updateStatus(" ✓ Wrote csv month"+monthItem.getName()+".csv", true);
-                        AppScreen.updateStatus("Done processing!", true);
-                        //uploadFile(monthFolder, "UTAustinInternship/dataset1/month" + monthItem.getName() + ".csv");
+                        AppScreen.updateStatus(" ✓ Wrote file month" + monthItem.getName() + ".csv", true);
+                        AppScreen.updateStatus("==========Done processing!==========", true);
+                        // uploadFile(monthFolder, "UTAustinInternship/dataset1/month" +
+                        // monthItem.getName() + ".csv");
                     }
                 }
             }
@@ -165,15 +172,6 @@ public class FileProcess {
         FileOutputStream stream = new FileOutputStream(info.getName());
         file.download(stream);
         stream.close();
-    }
-
-    private void uploadFile(BoxFolder location, String fileName)
-            throws IOException, InterruptedException {
-        File myFile = new File(fileName);
-        FileInputStream stream = new FileInputStream(myFile);
-        location.uploadLargeFile(stream, fileName, myFile.length());
-        stream.close();
-        System.out.println("Done uploading!");
     }
 
     private void readCSV(String fileName) throws IOException, CsvException {
