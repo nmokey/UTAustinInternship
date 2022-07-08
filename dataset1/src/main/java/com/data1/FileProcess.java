@@ -28,8 +28,9 @@ public class FileProcess {
     private ArrayList<String> seenOrigins = new ArrayList<>();
     private BoxAPIConnection api;
     private ProgressBar dailyProgress, writingProgress;
-    private File currentFile;
+    private File currentFile, desktop;
     private String year, month, days, startDate;
+    private String desktopPath;
 
     public FileProcess(String year, String month, String days, String startDate, String authcode)
             throws IOException, CsvException, InterruptedException {
@@ -37,6 +38,8 @@ public class FileProcess {
         this.month = month;
         this.days = days;
         this.startDate = startDate;
+        desktop = new File(System.getProperty("user.home"), "/Desktop");
+        desktopPath = desktop.getAbsolutePath();
         api = authorizeAPI(authcode);
         retrieveFiles();
     }
@@ -184,7 +187,7 @@ public class FileProcess {
 
     private void writeCSV(String month) throws IOException {
         AppScreen.updateStatus("Writing file month" + month + ".csv");
-        CSVWriter writer = new CSVWriter(new FileWriter("UTAustinInternship/dataset1/month" + month + ".csv"));
+        CSVWriter writer = new CSVWriter(new FileWriter(desktopPath+"/month" + month + ".csv"));
         writingProgress = new ProgressBar("Writing csv file: ", monthlyData.size());
         writer.writeNext(
                 new String[] { "device_count", "origin_census_block_group", "destination", "destination_count" });
