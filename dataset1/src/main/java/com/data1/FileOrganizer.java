@@ -21,7 +21,6 @@ public class FileOrganizer {
         rearrangeFiles(api);
         unzipProgress = new ProgressBar("Unzipping files:", 731);
         unzipFiles(api);
-        System.out.println("done orgainzing files!");
     }
 
     private BoxAPIConnection authorizeAPI(String authcode) throws IOException {

@@ -92,8 +92,8 @@ public class FileProcess {
                         AppScreen.updateStatus("Processing file " + fileName);
                         BoxFile dayFile = (BoxFile) dayItem.getResource(); // recognize boxfile
                         downloadFile(dayFile); // download CSV from box
-                        currentFile = new File(fileName); // recognize file locally
-                        readCSV(fileName); // save CSV contents to list
+                        currentFile = new File(desktopPath+"/"+fileName); // recognize file locally
+                        readCSV(desktopPath+"/"+fileName); // save CSV contents to list
                         currentFile.delete(); // delete local file
                         addToData(currentList);
                         AppScreen.completeTask();
@@ -170,7 +170,7 @@ public class FileProcess {
 
     private void downloadFile(BoxFile file) throws IOException {
         BoxFile.Info info = file.getInfo();
-        FileOutputStream stream = new FileOutputStream(info.getName());
+        FileOutputStream stream = new FileOutputStream(desktopPath+"/"+info.getName());
         file.download(stream);
         stream.close();
     }

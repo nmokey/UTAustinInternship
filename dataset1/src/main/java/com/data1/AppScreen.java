@@ -2,12 +2,13 @@ package com.data1;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.io.IOException;
 
+import javax.imageio.ImageIO;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -25,15 +26,14 @@ import javax.swing.border.EmptyBorder;
 import com.opencsv.exceptions.CsvException;
 
 public class AppScreen {
-    private JFrame frame = new JFrame("Data Manager App");
+    private JFrame frame = new JFrame("Dataset Manager");
     private final int DIMENSION_HEIGHT = 500, DIMENSION_WIDTH = 800;
     private final String AUTH_URL = "https://account.box.com/api/oauth2/authorize?client_id=g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv&redirect_uri=https://google.com&response_type=code";
     private static JTextArea statusField = new JTextArea();
     private JButton organizeButton = new JButton("Organize Files"), processButton = new JButton("Process Data");
     private JLabel background = new JLabel(new ImageIcon("UTAustinInternship/dataset1/images/appBackground.png"));
-    private Image icon = new ImageIcon("UTAustinInternship/dataset1/images/longhornsWhite.png").getImage();
 
-    public AppScreen() {
+    public AppScreen() throws IOException {
         setButtons();
         setTextArea();
         configureFrame();
@@ -50,8 +50,8 @@ public class AppScreen {
         statusField.update(statusField.getGraphics());
     }
 
-    private void configureFrame() {
-        frame.setIconImage(icon);
+    private void configureFrame() throws IOException {
+        frame.setIconImage(ImageIO.read(new File("UTAustinInternship/dataset1/images/longhornsWhite.png")));
         frame.setSize(DIMENSION_WIDTH, DIMENSION_HEIGHT);
         frame.setResizable(false);
         frame.add(background);
