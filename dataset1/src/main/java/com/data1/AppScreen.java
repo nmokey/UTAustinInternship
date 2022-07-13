@@ -30,8 +30,11 @@ public class AppScreen {
     private final int DIMENSION_HEIGHT = 500, DIMENSION_WIDTH = 800;
     private final String AUTH_URL = "https://account.box.com/api/oauth2/authorize?client_id=g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv&redirect_uri=https://google.com&response_type=code";
     private static JTextArea statusField = new JTextArea();
-    private JButton organizeButton = new JButton("Organize Files"), processButton = new JButton("Process Data");
+    private JButton organizeButton = new JButton("Organize Files"), processButton = new JButton("Process Data"),
+            aggregateButton = new JButton("Aggregate Data");
     private JLabel background = new JLabel(new ImageIcon("UTAustinInternship/dataset1/images/appBackground.png"));
+    private String[] range = new String[4];
+    private String authcode;
 
     public AppScreen() throws IOException {
         setButtons();
@@ -45,8 +48,8 @@ public class AppScreen {
         statusField.update(statusField.getGraphics());
     }
 
-    public static void completeTask(){
-        statusField.setText(" ✓ "+statusField.getText());
+    public static void completeTask() {
+        statusField.setText(" ✓ " + statusField.getText());
         statusField.update(statusField.getGraphics());
     }
 
@@ -58,32 +61,69 @@ public class AppScreen {
     }
 
     private void setButtons() {
-        organizeButton.setBounds(DIMENSION_WIDTH * 3 / 16, DIMENSION_HEIGHT * 7 / 20, 200, 40);
+        organizeButton.setBounds(DIMENSION_WIDTH / 16, DIMENSION_HEIGHT * 7 / 20, 200, 40);
         organizeButton.setFont(new Font("Helvetica Neue", Font.BOLD, 16));
         organizeButton.setForeground(new Color(191, 87, 0));
         organizeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
                     java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));
-                    String authcode = getAuthcode();
-                    new FileOrganizer(authcode);
+                    if(getAuthcode()){
+                        new FileOrganizer(authcode);
+                    }
+                    else{
+                        updateStatus("\nAuthcode error! Try again.");
+                    }
                 } catch (IOException | InterruptedException e1) {
                     e1.printStackTrace();
                 }
             }
         });
-        processButton.setBounds(DIMENSION_WIDTH * 9 / 16, DIMENSION_HEIGHT * 7 / 20, 200, 40);
+        processButton.setBounds(DIMENSION_WIDTH * 3 / 8, DIMENSION_HEIGHT * 7 / 20, 200, 40);
         processButton.setFont(new Font("Helvetica Neue", Font.BOLD, 16));
         processButton.setForeground(new Color(191, 87, 0));
         processButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    String[] range = getDateRange();
-                    String yearInput = range[0], monthInput = range[1], dayInput = range[2], startInput = range[3];
-                    updateStatus("Enter authcode obtained from browser");
-                    java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));
-                    String authcode = getAuthcode();
-                    new FileProcess(yearInput, monthInput, dayInput, startInput, authcode);
+                    if(getDateRange()){
+                        String yearInput = range[0], monthInput = range[1], dayInput = range[2], startInput = range[3];
+                        updateStatus("Enter authcode obtained from browser");
+                        java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));
+                        if(getAuthcode()){
+                            new FileProcess(yearInput, monthInput, dayInput, startInput, authcode);
+                        }
+                        else{
+                            updateStatus("\nAuthcode error! Try again.");
+                        }
+                    }
+                    else{
+                        updateStatus("\nError getting date range! Try again.");
+                    }
+                } catch (IOException | CsvException | InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
+        aggregateButton.setBounds(DIMENSION_WIDTH * 11 / 16, DIMENSION_HEIGHT * 7 / 20, 200, 40);
+        aggregateButton.setFont(new Font("Helvetica Neue", Font.BOLD, 16));
+        aggregateButton.setForeground(new Color(191, 87, 0));
+        aggregateButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    if(getDateRange()){
+                        String yearInput = range[0], monthInput = range[1];
+                        updateStatus("Enter authcode obtained from browser");
+                        java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));
+                        if(getAuthcode()){
+                            new DataAggregate(yearInput, monthInput, authcode);
+                        }
+                        else{
+                            updateStatus("\nAuthcode error! Try again.");
+                        }
+                    }
+                    else{
+                        updateStatus("\nError getting date range! Try again.");
+                    }
                 } catch (IOException | CsvException | InterruptedException e1) {
                     e1.printStackTrace();
                 }
@@ -91,6 +131,7 @@ public class AppScreen {
         });
         frame.add(organizeButton);
         frame.add(processButton);
+        frame.add(aggregateButton);
     }
 
     private void setTextArea() {
@@ -104,21 +145,23 @@ public class AppScreen {
         frame.add(statusField);
     }
 
-    private String getAuthcode() {
+    private boolean getAuthcode() {
         JPasswordField authField = new JPasswordField(20);
         authField.setSize(20, 1);
         JPanel authPanel = new JPanel();
         authPanel.setLayout(new BoxLayout(authPanel, BoxLayout.Y_AXIS));
         authPanel.add(new JLabel("Enter authcode: "));
         authPanel.add(authField);
-        JOptionPane.showConfirmDialog(frame, authPanel, "OAuth 2.0 Authorization",
-                JOptionPane.OK_CANCEL_OPTION);
-        completeTask();        
-        return new String(authField.getPassword());
+        if (JOptionPane.showConfirmDialog(frame, authPanel, "OAuth 2.0 Authorization",
+                JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
+            completeTask();
+            authcode = new String(authField.getPassword());
+            return true;
+        }
+        return false;
     }
 
-    private String[] getDateRange() {
-        String[] range = new String[4];
+    private boolean getDateRange() {
         String[] years = { "2019", "2020" };
         JPanel daySelection = new JPanel();
         JComboBox<String> year;
@@ -135,13 +178,15 @@ public class AppScreen {
         daySelection.add(new JLabel("Start date :"));
         daySelection.add(startDate = new JTextField("1", 2));
         updateStatus("Enter date range to aggregate");
-        JOptionPane.showConfirmDialog(frame, daySelection,
-                "Enter date range: ", JOptionPane.OK_CANCEL_OPTION);
-        range[0] = (String) year.getSelectedItem();
-        range[1] = month.getText();
-        range[2] = days.getText();
-        range[3] = startDate.getText();
-        completeTask();
-        return range;
+        if (JOptionPane.showConfirmDialog(frame, daySelection,
+                "Enter date range: ", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
+            range[0] = (String) year.getSelectedItem();
+            range[1] = month.getText();
+            range[2] = days.getText();
+            range[3] = startDate.getText();
+            completeTask();
+            return true;
+        }
+        return false;
     }
 }
