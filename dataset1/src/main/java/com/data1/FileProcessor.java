@@ -22,7 +22,7 @@ import com.opencsv.exceptions.CsvException;
 
 import me.tongfei.progressbar.ProgressBar;
 
-public class FileProcess {
+public class FileProcessor {
     private List<String[]> currentList; // each element is a String[] which represents one line of the csv file.
     private List<String[]> monthlyData = new ArrayList<String[]>();
     private ArrayList<String> seenOrigins = new ArrayList<>();
@@ -32,7 +32,7 @@ public class FileProcess {
     private String year, month, days, startDate;
     private String desktopPath;
 
-    public FileProcess(String year, String month, String days, String startDate, String authcode)
+    public FileProcessor(String year, String month, String days, String startDate, String authcode)
             throws IOException, CsvException, InterruptedException {
         this.year = year;
         this.month = month;

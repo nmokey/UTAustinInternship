@@ -22,17 +22,18 @@ import com.opencsv.exceptions.CsvException;
 
 import me.tongfei.progressbar.ProgressBar;
 
-public class DataAggregate {
-    private List<String[]> currentList; // each element is a String[] which represents one line of the csv file.
+public class FileAggregator {
+    private List<String[]> currentListByOrigin, currentListByDestination; // each element is a String[] which represents
+                                                                          // one line of the csv file.
     private List<String[]> outputList = new ArrayList<String[]>();
     private ArrayList<String> seenOrigins = new ArrayList<>();
     private BoxAPIConnection api;
     private ProgressBar dailyProgress, writingProgress;
     private File currentFile, desktop;
     private String year, month;
-    private String desktopPath;
+    private String desktopPath, fileName;
 
-    public DataAggregate(String year, String month, String authcode)
+    public FileAggregator(String year, String month, String authcode)
             throws IOException, CsvException, InterruptedException {
         this.year = year;
         this.month = month;
@@ -61,7 +62,7 @@ public class DataAggregate {
      */
     private void retrieveFiles() throws IOException, CsvException, InterruptedException {
         AppScreen.updateStatus("See terminal for progress details.");
-        AppScreen.updateStatus("==========Aggregating Data of month "+month+"==========");
+        AppScreen.updateStatus("==========Aggregating Data of month " + month + "==========");
         BoxFolder rootFolder = BoxFolder.getRootFolder(api);
         for (BoxItem.Info dataItem : rootFolder) {
             BoxFolder dataFolder = ((BoxFolder.Info) dataItem).getResource();
@@ -76,19 +77,20 @@ public class DataAggregate {
                         if (!monthItem.getName().equals(month)) { // check for correct month
                             break;
                         }
-                        if(!dayItem.getName().substring(0,5).equals(year+"_")){ //aggregate only processed files
+                        if (!dayItem.getName().substring(0, 5).equals(year + "_")) { // aggregate only processed files
                             continue;
                         }
-                        currentList = null;
+                        currentListByOrigin = null;
+                        currentListByDestination = null;
                         dailyProgress = null;
-                        String fileName = dayItem.getName();
+                        fileName = dayItem.getName();
                         AppScreen.updateStatus("Aggregating file " + fileName);
                         BoxFile dayFile = (BoxFile) dayItem.getResource(); // recognize boxfile
                         downloadFile(dayFile); // download CSV from box
-                        currentFile = new File(desktopPath+"/"+fileName); // recognize file locally
-                        readCSV(desktopPath+"/"+fileName); // save CSV contents to list
+                        currentFile = new File(desktopPath + "/" + fileName); // recognize file locally
+                        readCSV(desktopPath + "/" + fileName); // save CSV contents to list
                         currentFile.delete(); // delete local file
-                        addToData(currentList);
+                        aggregateData();
                         AppScreen.completeTask();
                         writeCSV(monthItem.getName());
                     }
@@ -98,23 +100,60 @@ public class DataAggregate {
         }
     }
 
+    private void aggregateData() {
+        dailyProgress = new ProgressBar("Aggregating file " + currentFile.getName(), currentListByOrigin.size());
+        currentListByOrigin.remove(0);
+        currentListByDestination = new ArrayList<String[]>(currentListByOrigin);
+        Collections.sort(currentListByDestination, new Comparator<String[]>() { // Sort by destination
+            @Override
+            public int compare(String[] o1, String[] o2) {
+                return o1[2].compareTo(o2[2]);
+            }
+        });
+        String currentOrigin = currentListByOrigin.get(0)[1];
+        for (String[] oldRow : currentListByOrigin) {
+            String[] newRow = new String[4];
+            if (currentOrigin.equals(oldRow[1]) && !oldRow[1].equals(oldRow[2])) { // if still same origin
+                newRow[1] = Integer.parseInt(newRow[1]) + Integer.parseInt(oldRow[3]) + ""; // add the origin_count
+                
+            } else if (!currentOrigin.equals(oldRow[1])) { // if we've moved on to the next origin
+                currentOrigin = oldRow[1];
+                outputList.add(newRow);
+                newRow[0] = oldRow[1];
+                newRow[1] = oldRow[3];
+                for(int i = findBounds(oldRow)[0]; i< findBounds(oldRow)[1];i++){
+                    if(!oldRow[1].equals(oldRow[2])){
+                        newRow[2]=Integer.parseInt(newRow[2])+Integer.parseInt(oldRow[3])+""; //add the destination_count
+                    }
+                }
+                newRow[3] = oldRow[0];
+            }
+            dailyProgress.step();
+        }
+    }
+
+    private int[] findBounds(String[] destinationRow) {
+        int[] bounds = new int[2];
+        int index = Collections.binarySearch(currentListByDestination, destinationRow, new Comparator<String[]>(){
+            @Override
+            public int compare(String[] o1, String[] o2) {
+                return o1[2].compareTo(o2[2]);
+            }
+        });
+        while (currentListByDestination.get(index - 1)[2].equals(destinationRow[2])) {
+            index--;
+        }
+        bounds[0] = index;
+        while (currentListByDestination.get(index + 1)[2].equals(destinationRow[2])) {
+            index++;
+        }
+        bounds[1] = index;
+        return bounds;
+    }
+
     private void addToData(List<String[]> thisData) {
         dailyProgress = new ProgressBar("Processing file " + currentFile.getName(), thisData.size());
         thisData.remove(0); // Get rid of headers to avoid IndexOutOfBounds
-        if (outputList.isEmpty()) {
-            outputList = thisData;
-            Collections.sort(outputList, new Comparator<String[]>() { // Sort monthlyData by origin
-                @Override
-                public int compare(String[] o1, String[] o2) {
-                    return o1[0].compareTo(o2[0]);
-                }
-            });
-            for (String[] row : outputList) { // Add all initial origins to seenOrigins
-                seenOrigins.add(row[0]);
-                dailyProgress.step();
-            }
-            return;
-        }
         for (String[] row : thisData) {
             int originIndex = Collections.binarySearch(seenOrigins, row[0]);
             if (originIndex > -1) { // if the origin has been seen before
@@ -160,7 +199,7 @@ public class DataAggregate {
 
     private void downloadFile(BoxFile file) throws IOException {
         BoxFile.Info info = file.getInfo();
-        FileOutputStream stream = new FileOutputStream(desktopPath+"/"+info.getName());
+        FileOutputStream stream = new FileOutputStream(desktopPath + "/" + info.getName());
         file.download(stream);
         stream.close();
     }
@@ -168,7 +207,7 @@ public class DataAggregate {
     private void readCSV(String fileName) throws IOException, CsvException {
         try {
             CSVReader reader = new CSVReader(new FileReader(fileName));
-            currentList = reader.readAll(); // reads CSV into a List<String[]>
+            currentListByOrigin = reader.readAll(); // reads CSV into a List<String[]>
             reader.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -177,27 +216,15 @@ public class DataAggregate {
 
     private void writeCSV(String month) throws IOException {
         AppScreen.updateStatus("Writing file month" + month + ".csv");
-        CSVWriter writer = new CSVWriter(new FileWriter(desktopPath+"/month" + month + ".csv"));
+        CSVWriter writer = new CSVWriter(new FileWriter(desktopPath + "/month" + month + ".csv"));
         writingProgress = new ProgressBar("Writing csv file: ", outputList.size());
         writer.writeNext(
-                new String[] { "device_count", "origin_census_block_group", "destination", "destination_count" });
+                new String[] { "origin_census_block_group", "origin_count", "destination_count", "device_count" });
         for (String[] row : outputList) { // for each row in the data list:
-            String[] destinations = row[13].substring(1, row[13].length() - 1).split(",");
-            for (String destination : destinations) {
-                writer.writeNext(buildRow(row, destination));
-            }
+            writer.writeNext(row);
             writingProgress.step();
         }
         writer.close();
         AppScreen.completeTask();
-    }
-
-    private String[] buildRow(String[] oldRow, String destination) {
-        String[] newRow = new String[4];
-        newRow[0] = oldRow[3];
-        newRow[1] = oldRow[0];
-        newRow[2] = destination.substring(1, 13);
-        newRow[3] = destination.substring(15);
-        return newRow;
     }
 }

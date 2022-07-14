@@ -1,5 +1,7 @@
 package com.data1;
 
+import static org.junit.Assert.fail;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Insets;
@@ -53,6 +55,11 @@ public class AppScreen {
         statusField.update(statusField.getGraphics());
     }
 
+    public static void failTask(){
+        statusField.setText(" ✗ " + statusField.getText());
+        statusField.update(statusField.getGraphics());
+    }
+
     private void configureFrame() throws IOException {
         frame.setIconImage(ImageIO.read(new File("UTAustinInternship/dataset1/images/longhornsWhite.png")));
         frame.setSize(DIMENSION_WIDTH, DIMENSION_HEIGHT);
@@ -67,12 +74,13 @@ public class AppScreen {
         organizeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
+                    updateStatus("Enter authcode obtained from browser");
                     java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));
                     if(getAuthcode()){
                         new FileOrganizer(authcode);
                     }
                     else{
-                        updateStatus("\nAuthcode error! Try again.");
+                        failTask();
                     }
                 } catch (IOException | InterruptedException e1) {
                     e1.printStackTrace();
@@ -90,14 +98,14 @@ public class AppScreen {
                         updateStatus("Enter authcode obtained from browser");
                         java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));
                         if(getAuthcode()){
-                            new FileProcess(yearInput, monthInput, dayInput, startInput, authcode);
+                            new FileProcessor(yearInput, monthInput, dayInput, startInput, authcode);
                         }
                         else{
-                            updateStatus("\nAuthcode error! Try again.");
+                            failTask();
                         }
                     }
                     else{
-                        updateStatus("\nError getting date range! Try again.");
+                        failTask();
                     }
                 } catch (IOException | CsvException | InterruptedException e1) {
                     e1.printStackTrace();
@@ -115,14 +123,14 @@ public class AppScreen {
                         updateStatus("Enter authcode obtained from browser");
                         java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));
                         if(getAuthcode()){
-                            new DataAggregate(yearInput, monthInput, authcode);
+                            new FileAggregator(yearInput, monthInput, authcode);
                         }
                         else{
-                            updateStatus("\nAuthcode error! Try again.");
+                            failTask();
                         }
                     }
                     else{
-                        updateStatus("\nError getting date range! Try again.");
+                        failTask();
                     }
                 } catch (IOException | CsvException | InterruptedException e1) {
                     e1.printStackTrace();
