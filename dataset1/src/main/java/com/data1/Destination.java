@@ -1,23 +1,25 @@
 package com.data1;
 
-public class Destination implements Comparable<Destination> {
-    private int destinationID, deviceCount;
+public class Destination implements Comparable<String> {
+    private String destinationID;
+    private int deviceCount;
+
 
     public Destination(String destinationID) {
-        this.destinationID = Integer.parseInt(destinationID);
+        this.destinationID = destinationID;
         this.deviceCount = 0;
     }
 
     public Destination(String destinationID, String deviceCount) {
-        this.destinationID = Integer.parseInt(destinationID);
+        this.destinationID = destinationID;
         this.deviceCount = Integer.parseInt(deviceCount);
     }
 
-    public void incrementDestinationCount(int newCount) {
-        deviceCount += newCount;
+    public void incrementDestinationCount(String newCount) {
+        deviceCount += Integer.parseInt(newCount);
     }
 
-    public int getDestinationID() {
+    public String getDestinationID() {
         return destinationID;
     }
 
@@ -26,7 +28,7 @@ public class Destination implements Comparable<Destination> {
     }
 
     @Override
-    public int compareTo(Destination other) {
-        return this.destinationID - other.destinationID;
+    public int compareTo(String otherID) {
+        return this.destinationID.compareTo(otherID);
     }
 }
