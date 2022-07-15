@@ -1,7 +1,5 @@
 package com.data1;
 
-import static org.junit.Assert.fail;
-
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Insets;
@@ -55,7 +53,7 @@ public class AppScreen {
         statusField.update(statusField.getGraphics());
     }
 
-    public static void failTask(){
+    public static void failTask() {
         statusField.setText(" ✗ " + statusField.getText());
         statusField.update(statusField.getGraphics());
     }
@@ -76,10 +74,9 @@ public class AppScreen {
                 try {
                     updateStatus("Enter authcode obtained from browser");
                     java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));
-                    if(getAuthcode()){
+                    if (getAuthcode()) {
                         new FileOrganizer(authcode);
-                    }
-                    else{
+                    } else {
                         failTask();
                     }
                 } catch (IOException | InterruptedException e1) {
@@ -93,18 +90,16 @@ public class AppScreen {
         processButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    if(getDateRange()){
+                    if (getDateRange()) {
                         String yearInput = range[0], monthInput = range[1], dayInput = range[2], startInput = range[3];
                         updateStatus("Enter authcode obtained from browser");
                         java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));
-                        if(getAuthcode()){
+                        if (getAuthcode()) {
                             new FileProcessor(yearInput, monthInput, dayInput, startInput, authcode);
-                        }
-                        else{
+                        } else {
                             failTask();
                         }
-                    }
-                    else{
+                    } else {
                         failTask();
                     }
                 } catch (IOException | CsvException | InterruptedException e1) {
@@ -118,18 +113,16 @@ public class AppScreen {
         aggregateButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    if(getDateRange()){
+                    if (getDateRange()) {
                         String yearInput = range[0], monthInput = range[1];
                         updateStatus("Enter authcode obtained from browser");
                         java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));
-                        if(getAuthcode()){
+                        if (getAuthcode()) {
                             new FileAggregator(yearInput, monthInput, authcode);
-                        }
-                        else{
+                        } else {
                             failTask();
                         }
-                    }
-                    else{
+                    } else {
                         failTask();
                     }
                 } catch (IOException | CsvException | InterruptedException e1) {

@@ -1,6 +1,7 @@
 package com.data1;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -19,15 +20,13 @@ import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvException;
 import com.opencsv.exceptions.CsvValidationException;
 
-import me.tongfei.progressbar.ProgressBar;
-
 public class FileAggregator {
     private String[] currentRow;
     private ArrayList<Destination> destinations;
     private CSVReader reader;
     private List<String[]> outputList;
     private BoxAPIConnection api;
-    private File currentFile, desktop;
+    private File currentFile, outputFile, desktop;
     private String year, month, currentOrigin;
     private String desktopPath, fileName;
 
@@ -88,9 +87,16 @@ public class FileAggregator {
                         reader = new CSVReader(new FileReader(desktopPath + "/" + fileName));
                         currentFile.delete(); // delete local file
                         aggregateData();
-                        writeCSV(monthItem.getName());
+                        writeCSV();
+                        outputFile = new File(
+                                desktopPath + "/" + fileName.substring(0, fileName.length() - 4) + "_aggregated.csv");
+                        uploadFile(monthFolder,
+                                desktopPath + "/" + fileName.substring(0, fileName.length() - 4) + "_aggregated.csv");
+                        outputFile.delete();
                     }
-                    AppScreen.updateStatus("==========Done processing!==========");
+                    if (monthItem.getName().equals(month)) {
+                        AppScreen.updateStatus("==========Done processing!==========");
+                    }
                 }
             }
         }
@@ -113,7 +119,6 @@ public class FileAggregator {
                 addDestination(currentRow);
             } else if (!currentOrigin.equals(currentRow[1])) { // if we've moved on to the next origin
                 currentOrigin = currentRow[1];
-                System.out.println(Arrays.toString(newRow));
                 outputList.add(newRow);
                 newRow = new String[4];
                 newRow[0] = currentRow[1];
@@ -123,7 +128,7 @@ public class FileAggregator {
             }
             currentRow = reader.readNext();
         }
-
+        reader.close();
         for (int i = 0; i < outputList.size(); i++) {
             String[] row = outputList.get(i);
             if (row[0] == null || destinations == null) {
@@ -156,7 +161,15 @@ public class FileAggregator {
         stream.close();
     }
 
-    private void writeCSV(String month) throws IOException {
+    private void uploadFile(BoxFolder location, String fileToUpload)
+            throws IOException, InterruptedException {
+        File myFile = new File(fileToUpload);
+        FileInputStream stream = new FileInputStream(myFile);
+        location.uploadFile(stream, fileName.substring(0, fileName.length() - 4) + "_aggregated.csv");
+        stream.close();
+    }
+
+    private void writeCSV() throws IOException {
         CSVWriter writer = new CSVWriter(
                 new FileWriter(desktopPath + "/" + fileName.substring(0, fileName.length() - 4) + "_aggregated.csv"));
         writer.writeNext(
