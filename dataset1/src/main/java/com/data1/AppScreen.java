@@ -1,6 +1,7 @@
 package com.data1;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -19,6 +20,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
@@ -33,6 +35,7 @@ public class AppScreen {
     private JButton organizeButton = new JButton("Organize Files"), processButton = new JButton("Process Data"),
             aggregateButton = new JButton("Aggregate Data");
     private JLabel background = new JLabel(new ImageIcon("UTAustinInternship/dataset1/images/appBackground.png"));
+    private JScrollPane scroller;
     private String[] range = new String[4];
     private String authcode;
 
@@ -46,16 +49,19 @@ public class AppScreen {
     public static void updateStatus(String message) {
         statusField.setText(message + "\n" + statusField.getText());
         statusField.update(statusField.getGraphics());
+        statusField.setCaretPosition(0);
     }
 
     public static void completeTask() {
         statusField.setText(" ✓ " + statusField.getText());
         statusField.update(statusField.getGraphics());
+        statusField.setCaretPosition(0);
     }
 
     public static void failTask() {
         statusField.setText(" ✗ " + statusField.getText());
         statusField.update(statusField.getGraphics());
+        statusField.setCaretPosition(0);
     }
 
     private void configureFrame() throws IOException {
@@ -136,14 +142,18 @@ public class AppScreen {
     }
 
     private void setTextArea() {
-        statusField.setBounds(DIMENSION_WIDTH / 8, DIMENSION_HEIGHT / 2, DIMENSION_WIDTH * 3 / 4, DIMENSION_HEIGHT / 3);
+        scroller = new JScrollPane(statusField, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scroller.setBounds(DIMENSION_WIDTH / 8, DIMENSION_HEIGHT / 2, DIMENSION_WIDTH * 3 / 4, DIMENSION_HEIGHT / 3);
+        scroller.getVerticalScrollBar().setPreferredSize(new Dimension(0, 0));
+        scroller.setBorder(null);
         statusField.setEditable(false);
         statusField.setFont(new Font("Courier New", Font.PLAIN, 14));
         statusField.setBackground(new Color(60, 50, 50));
         statusField.setForeground(Color.WHITE);
         statusField.setBorder(new EmptyBorder(new Insets(15, 15, 15, 15)));
         statusField.setText("Welcome to the data manager!");
-        frame.add(statusField);
+        frame.add(scroller);
     }
 
     private boolean getAuthcode() {
