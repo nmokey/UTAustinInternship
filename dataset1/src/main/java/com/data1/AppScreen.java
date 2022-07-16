@@ -182,7 +182,7 @@ public class AppScreen {
         if (JOptionPane.showConfirmDialog(frame, daySelection,
                 "Enter date range: ", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
             range[0] = (String) year.getSelectedItem();
-            range[1] = month.getText();
+            range[1] = month.getText().length() == 1 ? "0" + month.getText() : month.getText();
             range[2] = days.getText();
             range[3] = startDate.getText();
             completeTask();

@@ -24,7 +24,7 @@ import me.tongfei.progressbar.ProgressBar;
 
 public class FileProcessor {
     private List<String[]> currentList; // each element is a String[] which represents one line of the csv file.
-    private List<String[]> monthlyData = new ArrayList<String[]>();
+    private List<String[]> processedData = new ArrayList<String[]>();
     private ArrayList<String> seenOrigins = new ArrayList<>();
     private BoxAPIConnection api;
     private ProgressBar dailyProgress, writingProgress;
@@ -111,15 +111,15 @@ public class FileProcessor {
     private void addToData(List<String[]> thisData) {
         dailyProgress = new ProgressBar("Processing file " + currentFile.getName(), thisData.size());
         thisData.remove(0); // Get rid of headers to avoid IndexOutOfBounds
-        if (monthlyData.isEmpty()) {
-            monthlyData = thisData;
-            Collections.sort(monthlyData, new Comparator<String[]>() { // Sort monthlyData by origin
+        if (processedData.isEmpty()) { //if first file
+            processedData = thisData;
+            Collections.sort(processedData, new Comparator<String[]>() { // Sort monthlyData by origin
                 @Override
                 public int compare(String[] o1, String[] o2) {
                     return o1[0].compareTo(o2[0]);
                 }
             });
-            for (String[] row : monthlyData) { // Add all initial origins to seenOrigins
+            for (String[] row : processedData) { // Add all initial origins to seenOrigins
                 seenOrigins.add(row[0]);
                 dailyProgress.step();
             }
@@ -128,13 +128,13 @@ public class FileProcessor {
         for (String[] row : thisData) {
             int originIndex = Collections.binarySearch(seenOrigins, row[0]);
             if (originIndex > -1) { // if the origin has been seen before
-                String[] monthlyRow = monthlyData.get(originIndex);
+                String[] monthlyRow = processedData.get(originIndex); //monthlyRow is row containing this origin
                 int monthlyDevice = Integer.parseInt(monthlyRow[3]);
                 int newDevice = Integer.parseInt(row[3]);
-                monthlyRow[3] = monthlyDevice + newDevice + "";
+                monthlyRow[3] = monthlyDevice + newDevice + ""; //increment device_count
                 incrementDestinations(row, monthlyRow);
             } else { // if the origin is a new one
-                monthlyData.add(-originIndex - 1, row);
+                processedData.add(-originIndex - 1, row);
                 seenOrigins.add(-originIndex - 1, row[0]);
             }
             dailyProgress.step();
@@ -188,10 +188,10 @@ public class FileProcessor {
     private void writeCSV(String month) throws IOException {
         AppScreen.updateStatus("Writing file month" + month + ".csv");
         CSVWriter writer = new CSVWriter(new FileWriter(desktopPath+"/month" + month + ".csv"));
-        writingProgress = new ProgressBar("Writing csv file: ", monthlyData.size());
+        writingProgress = new ProgressBar("Writing csv file: ", processedData.size());
         writer.writeNext(
                 new String[] { "device_count", "origin_census_block_group", "destination", "destination_count" });
-        for (String[] row : monthlyData) { // for each row in the data list:
+        for (String[] row : processedData) { // for each row in the data list:
             String[] destinations = row[13].substring(1, row[13].length() - 1).split(",");
             for (String destination : destinations) {
                 writer.writeNext(buildRow(row, destination));

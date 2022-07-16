@@ -31,4 +31,9 @@ public class Destination implements Comparable<String> {
     public int compareTo(String otherID) {
         return this.destinationID.compareTo(otherID);
     }
+
+    @Override
+    public String toString(){
+        return destinationID;
+    }
 }

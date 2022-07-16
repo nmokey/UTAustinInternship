@@ -118,8 +118,8 @@ public class FileAggregator {
                                                                                                 // origin_count
                 addDestination(currentRow);
             } else if (!currentOrigin.equals(currentRow[1])) { // if we've moved on to the next origin
-                currentOrigin = currentRow[1];
                 outputList.add(newRow);
+                currentOrigin = currentRow[1];
                 newRow = new String[4];
                 newRow[0] = currentRow[1];
                 newRow[1] = currentRow[3];
@@ -150,7 +150,9 @@ public class FileAggregator {
         if (index > -1) {
             destinations.get(index).incrementDestinationCount(row[3]);
         } else {
-            destinations.add(-index - 1, new Destination(row[2], row[3]));
+            if(row[2].chars().allMatch(Character::isDigit)&&row[3].chars().allMatch(Character::isDigit)){
+                destinations.add(-index - 1, new Destination(row[2], row[3]));
+            }
         }
     }
 
