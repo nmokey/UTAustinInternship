@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -23,8 +24,8 @@ import me.tongfei.progressbar.ProgressBar;
 
 public class FileProcessor {
     private List<String[]> currentList; // each element is a String[] which represents one line of the csv file.
-    private ArrayList<CensusBlockGroup> seenOrigins = new ArrayList<>();
-    private String[] newDestinations;
+    private List<String[]> processedData = new ArrayList<String[]>();
+    private ArrayList<String> seenOrigins = new ArrayList<>();
     private BoxAPIConnection api;
     private ProgressBar dailyProgress, writingProgress;
     private File currentFile, desktop;
@@ -102,6 +103,7 @@ public class FileProcessor {
                         writeCSV(monthItem.getName());
                         AppScreen.updateStatus("==========Done processing!==========");
                     }
+                    month = Integer.parseInt(month)+1+"";
                 }
             }
         }
@@ -110,17 +112,16 @@ public class FileProcessor {
     private void addToData(List<String[]> thisData) {
         dailyProgress = new ProgressBar("Processing file " + currentFile.getName(), thisData.size());
         thisData.remove(0); // Get rid of headers to avoid IndexOutOfBounds
-        if (seenOrigins.isEmpty()) { // If processing first file
-            Collections.sort(thisData, new Comparator<String[]>() { // Sort by origin
+        if (processedData.isEmpty()) { // if first file
+            processedData = thisData;
+            Collections.sort(processedData, new Comparator<String[]>() { // Sort processedData by origin
                 @Override
                 public int compare(String[] o1, String[] o2) {
                     return o1[0].compareTo(o2[0]);
                 }
             });
-            for (String[] row : thisData) { // Add all initial origins to seenOrigins
-                CensusBlockGroup thisOrigin = new CensusBlockGroup(row[0], row[3]);
-                incrementDestinations(thisOrigin, row);
-                seenOrigins.add(thisOrigin);
+            for (String[] row : processedData) { // Add all initial origins to seenOrigins
+                seenOrigins.add(row[0]);
                 dailyProgress.step();
             }
             return;
@@ -128,24 +129,44 @@ public class FileProcessor {
         for (String[] row : thisData) {
             int originIndex = Collections.binarySearch(seenOrigins, row[0]);
             if (originIndex > -1) { // if the origin has been seen before
-                CensusBlockGroup processedOrigin = seenOrigins.get(originIndex);
-                incrementDestinations(processedOrigin, row);
+                String[] processedRow = processedData.get(originIndex); // processedRow is row containing this origin
+                int monthlyDevice = Integer.parseInt(processedRow[3]);
+                int newDevice = Integer.parseInt(row[3]);
+                processedRow[3] = monthlyDevice + newDevice + ""; // increment device_count
+                incrementDestinations(row, processedRow);
             } else { // if the origin is a new one
-                CensusBlockGroup newOrigin = new CensusBlockGroup(row[0], row[3]);
-                incrementDestinations(newOrigin, row);
-                seenOrigins.add(-originIndex - 1, newOrigin);
+                processedData.add(-originIndex - 1, row);
+                seenOrigins.add(-originIndex - 1, row[0]);
             }
-            //dailyProgress.step();
+            dailyProgress.step();
         }
     }
 
-    private void incrementDestinations(CensusBlockGroup origin, String[] newRow) {
-        newDestinations = newRow[13].substring(1, newRow[13].length() - 1).split(",");
-        for (String destinationString : newDestinations) {
-            origin.addAssociatedCBG(
-                    new CensusBlockGroup(destinationString.substring(1, 13), destinationString.substring(15)));
+    private void incrementDestinations(String[] dailyRow, String[] processedRow) {
+        ArrayList<String> seenDestinations = new ArrayList<String>(
+                Arrays.asList(processedRow[13].substring(1, processedRow[13].length() - 1).split(",")));
+        String[] dailyDestinations = dailyRow[13].substring(1, dailyRow[13].length() - 1).split(",");
+        for (String newDest : dailyDestinations) {
+            int destinationCounter = seenDestinations.size();
+            for (int i = 0; i < seenDestinations.size(); i++) {
+                String seenDest = seenDestinations.get(i);
+                if (newDest.substring(1, 13).equals(seenDest.substring(1, 13))) {
+                    int combinedPass = Integer.parseInt(newDest.split(":")[1])
+                            + Integer.parseInt(seenDest.split(":")[1]);
+                    seenDest = seenDest.split(":")[0] + combinedPass;
+                    break; // move onto next newDest
+                }
+                destinationCounter--;
+            }
+            if (destinationCounter == 0) {
+                seenDestinations.add(newDest);
+            }
         }
-        newDestinations = null;
+        processedRow[13] = "{";
+        for (String destination : seenDestinations) {
+            processedRow[13] += destination + ",";
+        }
+        processedRow[13] = processedRow[13].substring(0, processedRow[13].length() - 1) + "}";
     }
 
     private void downloadFile(BoxFile file) throws IOException {
@@ -167,18 +188,28 @@ public class FileProcessor {
 
     private void writeCSV(String month) throws IOException {
         AppScreen.updateStatus("Writing file month" + month + ".csv");
-        CSVWriter writer = new CSVWriter(new FileWriter(desktopPath + "/month" + month + ".csv"));
-        writingProgress = new ProgressBar("Writing csv file: ", seenOrigins.size());
+        CSVWriter writer = new CSVWriter(new FileWriter(desktopPath + "/" + year + "_" + month + startDate + "-" + month
+                + (Integer.parseInt(startDate) + Integer.parseInt(days)) + ".csv"));
+        writingProgress = new ProgressBar("Writing csv file: ", processedData.size());
         writer.writeNext(
                 new String[] { "device_count", "origin_census_block_group", "destination", "destination_count" });
-        for (CensusBlockGroup origin : seenOrigins) { // for each row in the data list:
-            for (CensusBlockGroup destination : origin.getAssociatedCBG()) {
-                writer.writeNext(new String[] { origin.getDeviceCount() + "", origin.getCbgID(), destination.getCbgID(),
-                        destination.getDeviceCount() + "" });
+        for (String[] row : processedData) { // for each row in the data list:
+            String[] destinations = row[13].substring(1, row[13].length() - 1).split(",");
+            for (String destination : destinations) {
+                writer.writeNext(buildRow(row, destination));
             }
             writingProgress.step();
         }
         writer.close();
         AppScreen.completeTask();
+    }
+
+    private String[] buildRow(String[] oldRow, String destination) {
+        String[] newRow = new String[4];
+        newRow[0] = oldRow[3];
+        newRow[1] = oldRow[0];
+        newRow[2] = destination.substring(1, 13);
+        newRow[3] = destination.substring(15);
+        return newRow;
     }
 }
