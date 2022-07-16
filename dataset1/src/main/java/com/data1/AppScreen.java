@@ -97,7 +97,8 @@ public class AppScreen {
             public void actionPerformed(ActionEvent e) {
                 try {
                     if (getDateRange()) {
-                        String yearInput = dateRange[0], monthInput = dateRange[1], dayInput = dateRange[2], startInput = dateRange[3];
+                        String yearInput = dateRange[0], monthInput = dateRange[1], dayInput = dateRange[2],
+                                startInput = dateRange[3];
                         updateStatus("Enter authcode obtained from browser");
                         java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));
                         if (getAuthcode()) {
@@ -174,14 +175,15 @@ public class AppScreen {
 
     private boolean getDateRange() {
         String[] years = { "2019", "2020" };
+        String[] months = { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12" };
         JPanel daySelection = new JPanel();
-        JComboBox<String> year;
-        JTextField month, days, startDate;
+        JComboBox<String> year, month;
+        JTextField days, startDate;
         daySelection.add(new JLabel("Year: "));
         daySelection.add(year = new JComboBox<String>(years));
         daySelection.add(Box.createHorizontalStrut(10));
         daySelection.add(new JLabel("Month :"));
-        daySelection.add(month = new JTextField(2));
+        daySelection.add(month = new JComboBox<String>(months));
         daySelection.add(Box.createHorizontalStrut(10));
         daySelection.add(new JLabel("Days :"));
         daySelection.add(days = new JTextField(2));
@@ -192,7 +194,7 @@ public class AppScreen {
         if (JOptionPane.showConfirmDialog(frame, daySelection,
                 "Enter date range: ", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
             dateRange[0] = (String) year.getSelectedItem();
-            dateRange[1] = month.getText().length() == 1 ? "0" + month.getText() : month.getText();
+            dateRange[1] = (String) month.getSelectedItem();
             dateRange[2] = days.getText();
             dateRange[3] = startDate.getText();
             completeTask();
