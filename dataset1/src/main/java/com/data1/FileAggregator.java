@@ -148,7 +148,7 @@ public class FileAggregator {
     private void addDestination(String[] row) {
         int index = Collections.binarySearch(destinations, row[2]);
         if (index > -1) {
-            destinations.get(index).incrementDestinationCount(row[3]);
+            destinations.get(index).incrementDeviceCount(row[3]);
         } else {
             if(row[2].chars().allMatch(Character::isDigit)&&row[3].chars().allMatch(Character::isDigit)){
                 destinations.add(-index - 1, new CensusBlockGroup(row[2], row[3]));
