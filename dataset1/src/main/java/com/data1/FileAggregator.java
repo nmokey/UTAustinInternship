@@ -22,7 +22,7 @@ import com.opencsv.exceptions.CsvValidationException;
 
 public class FileAggregator {
     private String[] currentRow;
-    private ArrayList<Destination> destinations;
+    private ArrayList<CensusBlockGroup> destinations;
     private CSVReader reader;
     private List<String[]> outputList;
     private BoxAPIConnection api;
@@ -78,7 +78,7 @@ public class FileAggregator {
                             continue;
                         }
                         outputList = new ArrayList<String[]>();
-                        destinations = new ArrayList<Destination>();
+                        destinations = new ArrayList<CensusBlockGroup>();
                         fileName = dayItem.getName();
                         AppScreen.updateStatus("Aggregating file " + fileName);
                         BoxFile dayFile = (BoxFile) dayItem.getResource(); // recognize boxfile
@@ -136,7 +136,7 @@ public class FileAggregator {
             } else {
                 int index = Collections.binarySearch(destinations, row[0]);
                 if (index > -1) {
-                    Destination currentDest = destinations.get(index);
+                    CensusBlockGroup currentDest = destinations.get(index);
                     row[2] = currentDest.getDeviceCount() + "";
                 } else {
                     row[2] = "0";
@@ -151,7 +151,7 @@ public class FileAggregator {
             destinations.get(index).incrementDestinationCount(row[3]);
         } else {
             if(row[2].chars().allMatch(Character::isDigit)&&row[3].chars().allMatch(Character::isDigit)){
-                destinations.add(-index - 1, new Destination(row[2], row[3]));
+                destinations.add(-index - 1, new CensusBlockGroup(row[2], row[3]));
             }
         }
     }

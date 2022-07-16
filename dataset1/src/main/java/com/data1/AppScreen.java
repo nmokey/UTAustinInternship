@@ -36,7 +36,7 @@ public class AppScreen {
             aggregateButton = new JButton("Aggregate Data");
     private JLabel background = new JLabel(new ImageIcon("UTAustinInternship/dataset1/images/appBackground.png"));
     private JScrollPane scroller;
-    private String[] range = new String[4];
+    private String[] dateRange = new String[4];
     private String authcode;
 
     public AppScreen() throws IOException {
@@ -97,7 +97,7 @@ public class AppScreen {
             public void actionPerformed(ActionEvent e) {
                 try {
                     if (getDateRange()) {
-                        String yearInput = range[0], monthInput = range[1], dayInput = range[2], startInput = range[3];
+                        String yearInput = dateRange[0], monthInput = dateRange[1], dayInput = dateRange[2], startInput = dateRange[3];
                         updateStatus("Enter authcode obtained from browser");
                         java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));
                         if (getAuthcode()) {
@@ -120,7 +120,7 @@ public class AppScreen {
             public void actionPerformed(ActionEvent e) {
                 try {
                     if (getDateRange()) {
-                        String yearInput = range[0], monthInput = range[1];
+                        String yearInput = dateRange[0], monthInput = dateRange[1];
                         updateStatus("Enter authcode obtained from browser");
                         java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));
                         if (getAuthcode()) {
@@ -191,10 +191,10 @@ public class AppScreen {
         updateStatus("Enter date range to aggregate");
         if (JOptionPane.showConfirmDialog(frame, daySelection,
                 "Enter date range: ", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
-            range[0] = (String) year.getSelectedItem();
-            range[1] = month.getText().length() == 1 ? "0" + month.getText() : month.getText();
-            range[2] = days.getText();
-            range[3] = startDate.getText();
+            dateRange[0] = (String) year.getSelectedItem();
+            dateRange[1] = month.getText().length() == 1 ? "0" + month.getText() : month.getText();
+            dateRange[2] = days.getText();
+            dateRange[3] = startDate.getText();
             completeTask();
             return true;
         }

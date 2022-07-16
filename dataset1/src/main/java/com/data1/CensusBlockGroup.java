@@ -1,17 +1,17 @@
 package com.data1;
 
-public class Destination implements Comparable<String> {
-    private String destinationID;
+public class CensusBlockGroup implements Comparable<String> {
+    private String cbgID;
     private int deviceCount;
 
 
-    public Destination(String destinationID) {
-        this.destinationID = destinationID;
+    public CensusBlockGroup(String cbgString) {
+        this.cbgID = cbgString;
         this.deviceCount = 0;
     }
 
-    public Destination(String destinationID, String deviceCount) {
-        this.destinationID = destinationID;
+    public CensusBlockGroup(String cbgString, String deviceCount) {
+        this.cbgID = cbgString;
         this.deviceCount = Integer.parseInt(deviceCount);
     }
 
@@ -19,8 +19,8 @@ public class Destination implements Comparable<String> {
         deviceCount += Integer.parseInt(newCount);
     }
 
-    public String getDestinationID() {
-        return destinationID;
+    public String getCbgID() {
+        return cbgID;
     }
 
     public int getDeviceCount() {
@@ -29,11 +29,11 @@ public class Destination implements Comparable<String> {
 
     @Override
     public int compareTo(String otherID) {
-        return this.destinationID.compareTo(otherID);
+        return this.cbgID.compareTo(otherID);
     }
 
     @Override
     public String toString(){
-        return destinationID;
+        return cbgID;
     }
 }
