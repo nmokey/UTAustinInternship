@@ -81,7 +81,6 @@ public class AppScreen {
             public void actionPerformed(ActionEvent e) {
                 try {
                     updateStatus("Enter authcode obtained from browser");
-                    java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));
                     if (getAPI()) {
                         new FileOrganizer(api);
                     } else {
@@ -102,7 +101,6 @@ public class AppScreen {
                         String yearInput = dateRange[0], monthInput = dateRange[1], dayInput = dateRange[2],
                                 startInput = dateRange[3];
                         updateStatus("Enter authcode obtained from browser");
-                        java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));
                         if (getAPI()) {
                             new FileProcessor(yearInput, monthInput, dayInput, startInput, api);
                         } else {
@@ -159,10 +157,11 @@ public class AppScreen {
         frame.add(scroller);
     }
 
-    private boolean getAPI() {
+    private boolean getAPI() throws IOException {
         if(this.hasAPI){
             return true;
         }
+        java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));
         JPasswordField authField = new JPasswordField(20);
         authField.setSize(20, 1);
         authField.setMaximumSize(new Dimension(authField.getMaximumSize().width, authField.getMinimumSize().height));
