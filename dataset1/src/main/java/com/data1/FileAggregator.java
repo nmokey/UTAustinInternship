@@ -30,25 +30,14 @@ public class FileAggregator {
     private String year, month, currentOrigin;
     private String desktopPath, fileName;
 
-    public FileAggregator(String year, String month, String authcode)
+    public FileAggregator(String year, String month, BoxAPIConnection api)
             throws IOException, CsvException, InterruptedException {
         this.year = year;
         this.month = month;
         desktop = new File(System.getProperty("user.home"), "/Desktop");
         desktopPath = desktop.getAbsolutePath();
-        api = authorizeAPI(authcode);
+        this.api = api;
         retrieveFiles();
-    }
-
-    private BoxAPIConnection authorizeAPI(String authcode) throws IOException {
-        AppScreen.updateStatus("Establishing API connection");
-        api = new BoxAPIConnection(
-                "g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv",
-                "nhg2Qi0VeZX767uhWySRt7KywKu0uKgm",
-                authcode);
-        AppScreen.completeTask();
-        // api = new BoxAPIConnection("DEVTOKEN"); // for testing
-        return api;
     }
 
     /*

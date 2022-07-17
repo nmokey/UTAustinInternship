@@ -15,25 +15,15 @@ public class FileOrganizer {
     private BoxAPIConnection api;
     private ProgressBar rearrangeProgress, unzipProgress;
 
-    public FileOrganizer(String authcode) throws IOException, InterruptedException {
-        api = authorizeAPI(authcode);
+    public FileOrganizer(BoxAPIConnection api) throws IOException, InterruptedException {
+        this.api = api;
         rearrangeProgress = new ProgressBar("Rearranging files:", 731);
-        rearrangeFiles(api);
+        rearrangeFiles();
         unzipProgress = new ProgressBar("Unzipping files:", 731);
-        unzipFiles(api);
+        unzipFiles();
     }
 
-    private BoxAPIConnection authorizeAPI(String authcode) throws IOException {
-        api = new BoxAPIConnection(
-                "g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv",
-                "nhg2Qi0VeZX767uhWySRt7KywKu0uKgm",
-                authcode);
-        // api = new BoxAPIConnection("DEVTOKEN"); // for testing
-        return api;
-
-    }
-
-    private void rearrangeFiles(BoxAPIConnection api) {
+    private void rearrangeFiles() {
         BoxFolder rootFolder = BoxFolder.getRootFolder(api);
         for (BoxItem.Info dataItem : rootFolder) {
             BoxFolder dataFolder = ((BoxFolder.Info) dataItem).getResource();
@@ -57,7 +47,7 @@ public class FileOrganizer {
         }
     }
 
-    private void unzipFiles(BoxAPIConnection api) throws IOException, InterruptedException {
+    private void unzipFiles() throws IOException, InterruptedException {
         BoxFolder rootFolder = BoxFolder.getRootFolder(api);
         for (BoxItem.Info dataItem : rootFolder) {
             BoxFolder dataFolder = ((BoxFolder.Info) dataItem).getResource();

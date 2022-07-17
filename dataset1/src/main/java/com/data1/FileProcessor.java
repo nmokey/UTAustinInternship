@@ -32,27 +32,16 @@ public class FileProcessor {
     private String year, month, days, startDate;
     private String desktopPath;
 
-    public FileProcessor(String year, String month, String days, String startDate, String authcode)
+    public FileProcessor(String year, String month, String days, String startDate, BoxAPIConnection api)
             throws IOException, CsvException, InterruptedException {
         this.year = year;
         this.month = month;
         this.days = days;
         this.startDate = startDate;
+        this.api = api;
         desktop = new File(System.getProperty("user.home"), "/Desktop");
         desktopPath = desktop.getAbsolutePath();
-        api = authorizeAPI(authcode);
         retrieveFiles();
-    }
-
-    private BoxAPIConnection authorizeAPI(String authcode) throws IOException {
-        AppScreen.updateStatus("Establishing API connection");
-        api = new BoxAPIConnection(
-                "g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv",
-                "nhg2Qi0VeZX767uhWySRt7KywKu0uKgm",
-                authcode);
-        AppScreen.completeTask();
-        // api = new BoxAPIConnection("DEVTOKEN"); // for testing
-        return api;
     }
 
     /*

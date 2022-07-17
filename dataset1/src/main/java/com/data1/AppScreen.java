@@ -23,6 +23,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
+import com.box.sdk.BoxAPIConnection;
 import com.opencsv.exceptions.CsvException;
 
 public class AppScreen {
@@ -37,6 +38,8 @@ public class AppScreen {
     private JScrollPane scroller;
     private String[] dateRange = new String[4];
     private String authcode;
+    private boolean hasAPI = false;
+    private BoxAPIConnection api;
 
     public AppScreen() throws IOException {
         setButtons();
@@ -79,8 +82,8 @@ public class AppScreen {
                 try {
                     updateStatus("Enter authcode obtained from browser");
                     java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));
-                    if (getAuthcode()) {
-                        new FileOrganizer(authcode);
+                    if (getAPI()) {
+                        new FileOrganizer(api);
                     } else {
                         failTask();
                     }
@@ -95,13 +98,13 @@ public class AppScreen {
         processButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    if (getDateRange()) {
+                    if (getProcessDateRange()) {
                         String yearInput = dateRange[0], monthInput = dateRange[1], dayInput = dateRange[2],
                                 startInput = dateRange[3];
                         updateStatus("Enter authcode obtained from browser");
                         java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));
-                        if (getAuthcode()) {
-                            new FileProcessor(yearInput, monthInput, dayInput, startInput, authcode);
+                        if (getAPI()) {
+                            new FileProcessor(yearInput, monthInput, dayInput, startInput, api);
                         } else {
                             failTask();
                         }
@@ -119,12 +122,12 @@ public class AppScreen {
         aggregateButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    if (getDateRange()) {
+                    if (getAggregateDateRange()) {
                         String yearInput = dateRange[0], monthInput = dateRange[1];
                         updateStatus("Enter authcode obtained from browser");
                         java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));
-                        if (getAuthcode()) {
-                            new FileAggregator(yearInput, monthInput, authcode);
+                        if (getAPI()) {
+                            new FileAggregator(yearInput, monthInput, api);
                         } else {
                             failTask();
                         }
@@ -156,7 +159,10 @@ public class AppScreen {
         frame.add(scroller);
     }
 
-    private boolean getAuthcode() {
+    private boolean getAPI() {
+        if(this.hasAPI){
+            return true;
+        }
         JPasswordField authField = new JPasswordField(20);
         authField.setSize(20, 1);
         authField.setMaximumSize(new Dimension(authField.getMaximumSize().width, authField.getMinimumSize().height));
@@ -168,12 +174,20 @@ public class AppScreen {
                 JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
             completeTask();
             authcode = new String(authField.getPassword());
+            AppScreen.updateStatus("Establishing API connection");
+            api = new BoxAPIConnection(
+                    "g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv",
+                    "nhg2Qi0VeZX767uhWySRt7KywKu0uKgm",
+                    authcode);
+            AppScreen.completeTask();
+            // api = new BoxAPIConnection("DEVTOKEN"); // for testing
+            hasAPI = true;
             return true;
         }
         return false;
     }
 
-    private boolean getDateRange() {
+    private boolean getProcessDateRange() {
         String[] years = { "2019", "2020" };
         String[] months = { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12" };
         JPanel daySelection = new JPanel();
@@ -188,13 +202,34 @@ public class AppScreen {
         daySelection.add(Box.createHorizontalStrut(20));
         daySelection.add(new JLabel("Number of days :"));
         daySelection.add(days = new JTextField(1));
-        updateStatus("Enter date range to aggregate");
+        updateStatus("Enter date range to process");
         if (JOptionPane.showConfirmDialog(frame, daySelection,
                 "Date Range Input: ", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
             dateRange[0] = (String) year.getSelectedItem();
             dateRange[1] = (String) month.getSelectedItem();
             dateRange[2] = days.getText();
             dateRange[3] = startDate.getText();
+            completeTask();
+            return true;
+        }
+        return false;
+    }
+
+    private boolean getAggregateDateRange() {
+        String[] years = { "2019", "2020" };
+        String[] months = { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12" };
+        JPanel daySelection = new JPanel();
+        JComboBox<String> year, month;
+        daySelection.add(new JLabel("Year: "));
+        daySelection.add(year = new JComboBox<String>(years));
+        daySelection.add(Box.createHorizontalStrut(10));
+        daySelection.add(new JLabel("Month: "));
+        daySelection.add(month = new JComboBox<String>(months));
+        updateStatus("Enter month to aggregate");
+        if (JOptionPane.showConfirmDialog(frame, daySelection,
+                "Month Input: ", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
+            dateRange[0] = (String) year.getSelectedItem();
+            dateRange[1] = (String) month.getSelectedItem();
             completeTask();
             return true;
         }
