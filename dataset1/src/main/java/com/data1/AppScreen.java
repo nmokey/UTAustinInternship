@@ -23,6 +23,8 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
+import java.lang.ClassLoader;
+
 import com.box.sdk.BoxAPIConnection;
 import com.opencsv.exceptions.CsvException;
 
@@ -33,8 +35,8 @@ public class AppScreen {
     private static JTextArea statusField = new JTextArea();
     private JButton organizeButton = new JButton("Organize Files"), processButton = new JButton("Process Data"),
             aggregateButton = new JButton("Aggregate Data");
-    private JLabel background = new JLabel(new ImageIcon("UTAustinInternship/dataset1/images/appBackground.png"));
-    private ImageIcon img = new ImageIcon("UTAustinInternship/dataset1/images/longhornsWhite.png");
+    private JLabel background = new JLabel(new ImageIcon(ClassLoader.getSystemResource("appBackground.png")));
+    private ImageIcon img = new ImageIcon(ClassLoader.getSystemResource("longhornsWhite.png"));
     private JScrollPane scroller;
     private String[] dateRange = new String[4];
     private String authcode;
