@@ -2,9 +2,8 @@
 ![Java](https://img.shields.io/badge/java-%23ED8B00.svg?style=flat&logo=java&logoColor=white) 
 ![Apache Maven](https://img.shields.io/badge/Apache%20Maven-C71A36?style=flat&logo=Apache%20Maven&logoColor=white) 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/nmokey/UTAustinInternship?style=flat) 
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/nmokey/UTAustinInternship?style=flat)
-![GitHub](https://img.shields.io/github/license/nmokey/UTAustinInternship) 
 ![GitHub all releases](https://img.shields.io/github/downloads/nmokey/UTAustinInternship/total)
+![GitHub](https://img.shields.io/github/license/nmokey/UTAustinInternship) 
 # UT Austin Internship
 Code written for my summer of 2022 internship at UT Austin (6/22/22 - 7/27/22) with Ph.D student Yefu Chen.
 
