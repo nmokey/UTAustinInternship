@@ -62,7 +62,6 @@ public class FileProcessor {
      * year, month, days, and startDate.
      */
     private void retrieveFiles() throws IOException, CsvException, InterruptedException {
-        AppScreen.updateStatus("See terminal for progress details.");
         AppScreen.updateStatus("==========Processing files==========");
         BoxFolder rootFolder = BoxFolder.getRootFolder(api);
         for (BoxItem.Info dataItem : rootFolder) {
@@ -103,7 +102,6 @@ public class FileProcessor {
                         writeCSV(monthItem.getName());
                         AppScreen.updateStatus("==========Done processing!==========");
                     }
-                    month = Integer.parseInt(month)+1+"";
                 }
             }
         }
@@ -130,9 +128,9 @@ public class FileProcessor {
             int originIndex = Collections.binarySearch(seenOrigins, row[0]);
             if (originIndex > -1) { // if the origin has been seen before
                 String[] processedRow = processedData.get(originIndex); // processedRow is row containing this origin
-                int monthlyDevice = Integer.parseInt(processedRow[3]);
+                int seenDevice = Integer.parseInt(processedRow[3]);
                 int newDevice = Integer.parseInt(row[3]);
-                processedRow[3] = monthlyDevice + newDevice + ""; // increment device_count
+                processedRow[3] = seenDevice + newDevice + ""; // increment device_count
                 incrementDestinations(row, processedRow);
             } else { // if the origin is a new one
                 processedData.add(-originIndex - 1, row);
@@ -142,18 +140,19 @@ public class FileProcessor {
         }
     }
 
-    private void incrementDestinations(String[] dailyRow, String[] processedRow) {
+    private void incrementDestinations(String[] newRow, String[] processedRow) {
         ArrayList<String> seenDestinations = new ArrayList<String>(
                 Arrays.asList(processedRow[13].substring(1, processedRow[13].length() - 1).split(",")));
-        String[] dailyDestinations = dailyRow[13].substring(1, dailyRow[13].length() - 1).split(",");
+        String[] dailyDestinations = newRow[13].substring(1, newRow[13].length() - 1).split(",");
         for (String newDest : dailyDestinations) {
             int destinationCounter = seenDestinations.size();
             for (int i = 0; i < seenDestinations.size(); i++) {
                 String seenDest = seenDestinations.get(i);
                 if (newDest.substring(1, 13).equals(seenDest.substring(1, 13))) {
-                    int combinedPass = Integer.parseInt(newDest.split(":")[1])
-                            + Integer.parseInt(seenDest.split(":")[1]);
-                    seenDest = seenDest.split(":")[0] + combinedPass;
+                    int incremented = Integer.parseInt(newDest.substring(15))
+                            + Integer.parseInt(seenDest.substring(15));
+                    seenDest = seenDest.substring(0, 14) +":"+ incremented;
+                    seenDestinations.set(i, seenDest);
                     break; // move onto next newDest
                 }
                 destinationCounter--;
@@ -186,10 +185,15 @@ public class FileProcessor {
         }
     }
 
+    private String formatDay(String day) {
+        return Integer.parseInt(day) < 10 ? "0" + day : day;
+    }
+
     private void writeCSV(String month) throws IOException {
         AppScreen.updateStatus("Writing file month" + month + ".csv");
-        CSVWriter writer = new CSVWriter(new FileWriter(desktopPath + "/" + year + "_" + month + startDate + "-" + month
-                + (Integer.parseInt(startDate) + Integer.parseInt(days)) + ".csv"));
+        CSVWriter writer = new CSVWriter(
+                new FileWriter(desktopPath + "/" + year + "_" + month + formatDay(startDate) + "-" + month
+                        + formatDay(Integer.parseInt(days)+Integer.parseInt(startDate)+"") + ".csv"));
         writingProgress = new ProgressBar("Writing csv file: ", processedData.size());
         writer.writeNext(
                 new String[] { "device_count", "origin_census_block_group", "destination", "destination_count" });
@@ -205,11 +209,11 @@ public class FileProcessor {
     }
 
     private String[] buildRow(String[] oldRow, String destination) {
-        String[] newRow = new String[4];
-        newRow[0] = oldRow[3];
-        newRow[1] = oldRow[0];
-        newRow[2] = destination.substring(1, 13);
-        newRow[3] = destination.substring(15);
-        return newRow;
+            String[] newRow = new String[4];
+            newRow[0] = oldRow[3];
+            newRow[1] = oldRow[0];
+            newRow[2] = destination.substring(1, 13);
+            newRow[3] = destination.split(":")[1];
+            return newRow;
     }
 }

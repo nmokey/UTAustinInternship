@@ -58,7 +58,6 @@ public class FileAggregator {
      * year, month, days, and startDate.
      */
     private void retrieveFiles() throws IOException, CsvException, InterruptedException {
-        AppScreen.updateStatus("See terminal for progress details.");
         AppScreen.updateStatus("==========Aggregating Data of month " + month + "==========");
         BoxFolder rootFolder = BoxFolder.getRootFolder(api);
         for (BoxItem.Info dataItem : rootFolder) {

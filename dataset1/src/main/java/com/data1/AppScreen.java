@@ -6,10 +6,8 @@ import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.io.IOException;
 
-import javax.imageio.ImageIO;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -35,6 +33,7 @@ public class AppScreen {
     private JButton organizeButton = new JButton("Organize Files"), processButton = new JButton("Process Data"),
             aggregateButton = new JButton("Aggregate Data");
     private JLabel background = new JLabel(new ImageIcon("UTAustinInternship/dataset1/images/appBackground.png"));
+    private ImageIcon img = new ImageIcon("UTAustinInternship/dataset1/images/longhornsWhite.png");
     private JScrollPane scroller;
     private String[] dateRange = new String[4];
     private String authcode;
@@ -65,7 +64,7 @@ public class AppScreen {
     }
 
     private void configureFrame() throws IOException {
-        frame.setIconImage(ImageIO.read(new File("UTAustinInternship/dataset1/images/longhornsWhite.png")));
+        frame.setIconImage(img.getImage());
         frame.setSize(DIMENSION_WIDTH, DIMENSION_HEIGHT);
         frame.setResizable(false);
         frame.add(background);
@@ -160,6 +159,7 @@ public class AppScreen {
     private boolean getAuthcode() {
         JPasswordField authField = new JPasswordField(20);
         authField.setSize(20, 1);
+        authField.setMaximumSize(new Dimension(authField.getMaximumSize().width, authField.getMinimumSize().height));
         JPanel authPanel = new JPanel();
         authPanel.setLayout(new BoxLayout(authPanel, BoxLayout.Y_AXIS));
         authPanel.add(new JLabel("Enter authcode: "));
@@ -179,20 +179,18 @@ public class AppScreen {
         JPanel daySelection = new JPanel();
         JComboBox<String> year, month;
         JTextField days, startDate;
-        daySelection.add(new JLabel("Year: "));
-        daySelection.add(year = new JComboBox<String>(years));
-        daySelection.add(Box.createHorizontalStrut(10));
-        daySelection.add(new JLabel("Month :"));
+        daySelection.add(new JLabel("Start date:"));
         daySelection.add(month = new JComboBox<String>(months));
-        daySelection.add(Box.createHorizontalStrut(10));
-        daySelection.add(new JLabel("Days :"));
-        daySelection.add(days = new JTextField(2));
-        daySelection.add(Box.createHorizontalStrut(10));
-        daySelection.add(new JLabel("Start date :"));
+        daySelection.add(new JLabel("/"));
         daySelection.add(startDate = new JTextField("1", 2));
+        daySelection.add(new JLabel("/"));
+        daySelection.add(year = new JComboBox<String>(years));
+        daySelection.add(Box.createHorizontalStrut(20));
+        daySelection.add(new JLabel("Number of days :"));
+        daySelection.add(days = new JTextField(1));
         updateStatus("Enter date range to aggregate");
         if (JOptionPane.showConfirmDialog(frame, daySelection,
-                "Enter date range: ", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
+                "Date Range Input: ", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
             dateRange[0] = (String) year.getSelectedItem();
             dateRange[1] = (String) month.getSelectedItem();
             dateRange[2] = days.getText();
