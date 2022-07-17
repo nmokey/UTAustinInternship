@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AppScreen.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dataset1</a> &gt; <a href="index.source.html" class="el_package">com.data1</a> &gt; <span class="el_source">AppScreen.java</span></div><h1>AppScreen.java</h1><pre class="source lang-java linenums">package com.data1;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
+
+import java.lang.ClassLoader;
+
+import com.box.sdk.BoxAPIConnection;
+import com.opencsv.exceptions.CsvException;
+
+public class AppScreen {
+<span class="nc" id="L32">    private JFrame frame = new JFrame(&quot;Dataset Manager&quot;);</span>
+<span class="nc" id="L33">    private final int DIMENSION_HEIGHT = 500, DIMENSION_WIDTH = 800;</span>
+<span class="nc" id="L34">    private final String AUTH_URL = &quot;https://account.box.com/api/oauth2/authorize?client_id=g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv&amp;redirect_uri=https://google.com&amp;response_type=code&quot;;</span>
+<span class="nc" id="L35">    private static JTextArea statusField = new JTextArea();</span>
+<span class="nc" id="L36">    private JButton organizeButton = new JButton(&quot;Organize Files&quot;), processButton = new JButton(&quot;Process Data&quot;),</span>
+            aggregateButton = new JButton(&quot;Aggregate Data&quot;);
+<span class="nc" id="L38">    private JLabel background = new JLabel(new ImageIcon(ClassLoader.getSystemResource(&quot;appBackground.png&quot;)));</span>
+<span class="nc" id="L39">    private ImageIcon img = new ImageIcon(ClassLoader.getSystemResource(&quot;longhornsWhite.png&quot;));</span>
+    private JScrollPane scroller;
+<span class="nc" id="L41">    private String[] dateRange = new String[4];</span>
+    private String authcode;
+<span class="nc" id="L43">    private boolean hasAPI = false;</span>
+    private BoxAPIConnection api;
+
+<span class="nc" id="L46">    public AppScreen() throws IOException {</span>
+<span class="nc" id="L47">        setButtons();</span>
+<span class="nc" id="L48">        setTextArea();</span>
+<span class="nc" id="L49">        configureFrame();</span>
+<span class="nc" id="L50">        frame.setVisible(true);</span>
+<span class="nc" id="L51">    }</span>
+
+    public static void updateStatus(String message) {
+<span class="nc" id="L54">        statusField.setText(message + &quot;\n&quot; + statusField.getText());</span>
+<span class="nc" id="L55">        statusField.update(statusField.getGraphics());</span>
+<span class="nc" id="L56">        statusField.setCaretPosition(0);</span>
+<span class="nc" id="L57">    }</span>
+
+    public static void completeTask() {
+<span class="nc" id="L60">        statusField.setText(&quot; ✓ &quot; + statusField.getText());</span>
+<span class="nc" id="L61">        statusField.update(statusField.getGraphics());</span>
+<span class="nc" id="L62">        statusField.setCaretPosition(0);</span>
+<span class="nc" id="L63">    }</span>
+
+    public static void failTask() {
+<span class="nc" id="L66">        statusField.setText(&quot; ✗ &quot; + statusField.getText());</span>
+<span class="nc" id="L67">        statusField.update(statusField.getGraphics());</span>
+<span class="nc" id="L68">        statusField.setCaretPosition(0);</span>
+<span class="nc" id="L69">    }</span>
+
+    private void configureFrame() throws IOException {
+<span class="nc" id="L72">        frame.setIconImage(img.getImage());</span>
+<span class="nc" id="L73">        frame.setSize(DIMENSION_WIDTH, DIMENSION_HEIGHT);</span>
+<span class="nc" id="L74">        frame.setResizable(false);</span>
+<span class="nc" id="L75">        frame.add(background);</span>
+<span class="nc" id="L76">    }</span>
+
+    private void setButtons() {
+<span class="nc" id="L79">        organizeButton.setBounds(DIMENSION_WIDTH / 16, DIMENSION_HEIGHT * 7 / 20, 200, 40);</span>
+<span class="nc" id="L80">        organizeButton.setFont(new Font(&quot;Helvetica Neue&quot;, Font.BOLD, 16));</span>
+<span class="nc" id="L81">        organizeButton.setForeground(new Color(191, 87, 0));</span>
+<span class="nc" id="L82">        organizeButton.addActionListener(new ActionListener() {</span>
+            public void actionPerformed(ActionEvent e) {
+                try {
+<span class="nc" id="L85">                    updateStatus(&quot;Enter authcode obtained from browser&quot;);</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">                    if (getAPI()) {</span>
+<span class="nc" id="L87">                        new FileOrganizer(api);</span>
+                    } else {
+<span class="nc" id="L89">                        failTask();</span>
+                    }
+<span class="nc" id="L91">                } catch (IOException | InterruptedException e1) {</span>
+<span class="nc" id="L92">                    e1.printStackTrace();</span>
+<span class="nc" id="L93">                }</span>
+<span class="nc" id="L94">            }</span>
+        });
+<span class="nc" id="L96">        processButton.setBounds(DIMENSION_WIDTH * 3 / 8, DIMENSION_HEIGHT * 7 / 20, 200, 40);</span>
+<span class="nc" id="L97">        processButton.setFont(new Font(&quot;Helvetica Neue&quot;, Font.BOLD, 16));</span>
+<span class="nc" id="L98">        processButton.setForeground(new Color(191, 87, 0));</span>
+<span class="nc" id="L99">        processButton.addActionListener(new ActionListener() {</span>
+            public void actionPerformed(ActionEvent e) {
+                try {
+<span class="nc bnc" id="L102" title="All 2 branches missed.">                    if (getProcessDateRange()) {</span>
+<span class="nc" id="L103">                        String yearInput = dateRange[0], monthInput = dateRange[1], dayInput = dateRange[2],</span>
+<span class="nc" id="L104">                                startInput = dateRange[3];</span>
+<span class="nc" id="L105">                        updateStatus(&quot;Enter authcode obtained from browser&quot;);</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">                        if (getAPI()) {</span>
+<span class="nc" id="L107">                            new FileProcessor(yearInput, monthInput, dayInput, startInput, api);</span>
+                        } else {
+<span class="nc" id="L109">                            failTask();</span>
+                        }
+<span class="nc" id="L111">                    } else {</span>
+<span class="nc" id="L112">                        failTask();</span>
+                    }
+<span class="nc" id="L114">                } catch (IOException | CsvException | InterruptedException e1) {</span>
+<span class="nc" id="L115">                    e1.printStackTrace();</span>
+<span class="nc" id="L116">                }</span>
+<span class="nc" id="L117">            }</span>
+        });
+<span class="nc" id="L119">        aggregateButton.setBounds(DIMENSION_WIDTH * 11 / 16, DIMENSION_HEIGHT * 7 / 20, 200, 40);</span>
+<span class="nc" id="L120">        aggregateButton.setFont(new Font(&quot;Helvetica Neue&quot;, Font.BOLD, 16));</span>
+<span class="nc" id="L121">        aggregateButton.setForeground(new Color(191, 87, 0));</span>
+<span class="nc" id="L122">        aggregateButton.addActionListener(new ActionListener() {</span>
+            public void actionPerformed(ActionEvent e) {
+                try {
+<span class="nc bnc" id="L125" title="All 2 branches missed.">                    if (getAggregateDateRange()) {</span>
+<span class="nc" id="L126">                        String yearInput = dateRange[0], monthInput = dateRange[1];</span>
+<span class="nc" id="L127">                        updateStatus(&quot;Enter authcode obtained from browser&quot;);</span>
+<span class="nc" id="L128">                        java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">                        if (getAPI()) {</span>
+<span class="nc" id="L130">                            new FileAggregator(yearInput, monthInput, api);</span>
+                        } else {
+<span class="nc" id="L132">                            failTask();</span>
+                        }
+<span class="nc" id="L134">                    } else {</span>
+<span class="nc" id="L135">                        failTask();</span>
+                    }
+<span class="nc" id="L137">                } catch (IOException | CsvException | InterruptedException e1) {</span>
+<span class="nc" id="L138">                    e1.printStackTrace();</span>
+<span class="nc" id="L139">                }</span>
+<span class="nc" id="L140">            }</span>
+        });
+<span class="nc" id="L142">        frame.add(organizeButton);</span>
+<span class="nc" id="L143">        frame.add(processButton);</span>
+<span class="nc" id="L144">        frame.add(aggregateButton);</span>
+<span class="nc" id="L145">    }</span>
+
+    private void setTextArea() {
+<span class="nc" id="L148">        scroller = new JScrollPane(statusField, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,</span>
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+<span class="nc" id="L150">        scroller.setBounds(DIMENSION_WIDTH / 8, DIMENSION_HEIGHT / 2, DIMENSION_WIDTH * 3 / 4, DIMENSION_HEIGHT / 3);</span>
+<span class="nc" id="L151">        scroller.getVerticalScrollBar().setPreferredSize(new Dimension(0, 0));</span>
+<span class="nc" id="L152">        scroller.setBorder(null);</span>
+<span class="nc" id="L153">        statusField.setEditable(false);</span>
+<span class="nc" id="L154">        statusField.setFont(new Font(&quot;Courier New&quot;, Font.PLAIN, 14));</span>
+<span class="nc" id="L155">        statusField.setBackground(new Color(60, 50, 50));</span>
+<span class="nc" id="L156">        statusField.setForeground(Color.WHITE);</span>
+<span class="nc" id="L157">        statusField.setBorder(new EmptyBorder(new Insets(15, 15, 15, 15)));</span>
+<span class="nc" id="L158">        statusField.setText(&quot;Welcome to the data manager!&quot;);</span>
+<span class="nc" id="L159">        frame.add(scroller);</span>
+<span class="nc" id="L160">    }</span>
+
+    private boolean getAPI() throws IOException {
+<span class="nc bnc" id="L163" title="All 2 branches missed.">        if(this.hasAPI){</span>
+<span class="nc" id="L164">            return true;</span>
+        }
+<span class="nc" id="L166">        java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));</span>
+<span class="nc" id="L167">        JPasswordField authField = new JPasswordField(20);</span>
+<span class="nc" id="L168">        authField.setSize(20, 1);</span>
+<span class="nc" id="L169">        authField.setMaximumSize(new Dimension(authField.getMaximumSize().width, authField.getMinimumSize().height));</span>
+<span class="nc" id="L170">        JPanel authPanel = new JPanel();</span>
+<span class="nc" id="L171">        authPanel.setLayout(new BoxLayout(authPanel, BoxLayout.Y_AXIS));</span>
+<span class="nc" id="L172">        authPanel.add(new JLabel(&quot;Enter authcode: &quot;));</span>
+<span class="nc" id="L173">        authPanel.add(authField);</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">        if (JOptionPane.showConfirmDialog(frame, authPanel, &quot;OAuth 2.0 Authorization&quot;,</span>
+                JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
+<span class="nc" id="L176">            completeTask();</span>
+<span class="nc" id="L177">            authcode = new String(authField.getPassword());</span>
+<span class="nc" id="L178">            AppScreen.updateStatus(&quot;Establishing API connection&quot;);</span>
+<span class="nc" id="L179">            api = new BoxAPIConnection(</span>
+                    &quot;g9lmqv1kb5gw8zzsz8g0ftkd1wzj1hzv&quot;,
+                    &quot;nhg2Qi0VeZX767uhWySRt7KywKu0uKgm&quot;,
+                    authcode);
+<span class="nc" id="L183">            AppScreen.completeTask();</span>
+            // api = new BoxAPIConnection(&quot;DEVTOKEN&quot;); // for testing
+<span class="nc" id="L185">            hasAPI = true;</span>
+<span class="nc" id="L186">            return true;</span>
+        }
+<span class="nc" id="L188">        return false;</span>
+    }
+
+    private boolean getProcessDateRange() {
+<span class="nc" id="L192">        String[] years = { &quot;2019&quot;, &quot;2020&quot; };</span>
+<span class="nc" id="L193">        String[] months = { &quot;01&quot;, &quot;02&quot;, &quot;03&quot;, &quot;04&quot;, &quot;05&quot;, &quot;06&quot;, &quot;07&quot;, &quot;08&quot;, &quot;09&quot;, &quot;10&quot;, &quot;11&quot;, &quot;12&quot; };</span>
+<span class="nc" id="L194">        JPanel daySelection = new JPanel();</span>
+        JComboBox&lt;String&gt; year, month;
+        JTextField days, startDate;
+<span class="nc" id="L197">        daySelection.add(new JLabel(&quot;Start date:&quot;));</span>
+<span class="nc" id="L198">        daySelection.add(month = new JComboBox&lt;String&gt;(months));</span>
+<span class="nc" id="L199">        daySelection.add(new JLabel(&quot;/&quot;));</span>
+<span class="nc" id="L200">        daySelection.add(startDate = new JTextField(&quot;1&quot;, 2));</span>
+<span class="nc" id="L201">        daySelection.add(new JLabel(&quot;/&quot;));</span>
+<span class="nc" id="L202">        daySelection.add(year = new JComboBox&lt;String&gt;(years));</span>
+<span class="nc" id="L203">        daySelection.add(Box.createHorizontalStrut(20));</span>
+<span class="nc" id="L204">        daySelection.add(new JLabel(&quot;Number of days :&quot;));</span>
+<span class="nc" id="L205">        daySelection.add(days = new JTextField(1));</span>
+<span class="nc" id="L206">        updateStatus(&quot;Enter date range to process&quot;);</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">        if (JOptionPane.showConfirmDialog(frame, daySelection,</span>
+                &quot;Date Range Input: &quot;, JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
+<span class="nc" id="L209">            dateRange[0] = (String) year.getSelectedItem();</span>
+<span class="nc" id="L210">            dateRange[1] = (String) month.getSelectedItem();</span>
+<span class="nc" id="L211">            dateRange[2] = days.getText();</span>
+<span class="nc" id="L212">            dateRange[3] = startDate.getText();</span>
+<span class="nc" id="L213">            completeTask();</span>
+<span class="nc" id="L214">            return true;</span>
+        }
+<span class="nc" id="L216">        return false;</span>
+    }
+
+    private boolean getAggregateDateRange() {
+<span class="nc" id="L220">        String[] years = { &quot;2019&quot;, &quot;2020&quot; };</span>
+<span class="nc" id="L221">        String[] months = { &quot;01&quot;, &quot;02&quot;, &quot;03&quot;, &quot;04&quot;, &quot;05&quot;, &quot;06&quot;, &quot;07&quot;, &quot;08&quot;, &quot;09&quot;, &quot;10&quot;, &quot;11&quot;, &quot;12&quot; };</span>
+<span class="nc" id="L222">        JPanel daySelection = new JPanel();</span>
+        JComboBox&lt;String&gt; year, month;
+<span class="nc" id="L224">        daySelection.add(new JLabel(&quot;Year: &quot;));</span>
+<span class="nc" id="L225">        daySelection.add(year = new JComboBox&lt;String&gt;(years));</span>
+<span class="nc" id="L226">        daySelection.add(Box.createHorizontalStrut(10));</span>
+<span class="nc" id="L227">        daySelection.add(new JLabel(&quot;Month: &quot;));</span>
+<span class="nc" id="L228">        daySelection.add(month = new JComboBox&lt;String&gt;(months));</span>
+<span class="nc" id="L229">        updateStatus(&quot;Enter month to aggregate&quot;);</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">        if (JOptionPane.showConfirmDialog(frame, daySelection,</span>
+                &quot;Month Input: &quot;, JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
+<span class="nc" id="L232">            dateRange[0] = (String) year.getSelectedItem();</span>
+<span class="nc" id="L233">            dateRange[1] = (String) month.getSelectedItem();</span>
+<span class="nc" id="L234">            completeTask();</span>
+<span class="nc" id="L235">            return true;</span>
+        }
+<span class="nc" id="L237">        return false;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.4.201905082037</span></div></body></html>

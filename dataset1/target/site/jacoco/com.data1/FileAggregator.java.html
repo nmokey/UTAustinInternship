@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FileAggregator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dataset1</a> &gt; <a href="index.source.html" class="el_package">com.data1</a> &gt; <span class="el_source">FileAggregator.java</span></div><h1>FileAggregator.java</h1><pre class="source lang-java linenums">package com.data1;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import com.box.sdk.BoxAPIConnection;
+import com.box.sdk.BoxFile;
+import com.box.sdk.BoxFolder;
+import com.box.sdk.BoxItem;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVWriter;
+import com.opencsv.exceptions.CsvException;
+import com.opencsv.exceptions.CsvValidationException;
+
+public class FileAggregator {
+    private String[] currentRow;
+    private ArrayList&lt;CensusBlockGroup&gt; destinations;
+    private CSVReader reader;
+    private List&lt;String[]&gt; outputList;
+    private BoxAPIConnection api;
+    private File currentFile, outputFile, desktop;
+    private String year, month, currentOrigin;
+    private String desktopPath, fileName;
+
+    public FileAggregator(String year, String month, BoxAPIConnection api)
+<span class="nc" id="L34">            throws IOException, CsvException, InterruptedException {</span>
+<span class="nc" id="L35">        this.year = year;</span>
+<span class="nc" id="L36">        this.month = month;</span>
+<span class="nc" id="L37">        desktop = new File(System.getProperty(&quot;user.home&quot;), &quot;/Desktop&quot;);</span>
+<span class="nc" id="L38">        desktopPath = desktop.getAbsolutePath();</span>
+<span class="nc" id="L39">        this.api = api;</span>
+<span class="nc" id="L40">        retrieveFiles();</span>
+<span class="nc" id="L41">    }</span>
+
+    /*
+     * Currently this method is customized to only aggregate certain periods of
+     * time.
+     * To change which days are aggregated, adjust the instance variables
+     * year, month, days, and startDate.
+     */
+    private void retrieveFiles() throws IOException, CsvException, InterruptedException {
+<span class="nc" id="L50">        AppScreen.updateStatus(&quot;==========Aggregating Data of month &quot; + month + &quot;==========&quot;);</span>
+<span class="nc" id="L51">        BoxFolder rootFolder = BoxFolder.getRootFolder(api);</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">        for (BoxItem.Info dataItem : rootFolder) {</span>
+<span class="nc" id="L53">            BoxFolder dataFolder = ((BoxFolder.Info) dataItem).getResource();</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">            for (BoxItem.Info yearItem : dataFolder) {</span>
+<span class="nc" id="L55">                BoxFolder yearFolder = ((BoxFolder.Info) yearItem).getResource();</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">                for (BoxItem.Info monthItem : yearFolder) {</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">                    if (!yearItem.getName().equals(year)) { // check for correct year</span>
+<span class="nc" id="L58">                        break;</span>
+                    }
+<span class="nc" id="L60">                    BoxFolder monthFolder = ((BoxFolder.Info) monthItem).getResource();</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">                    for (BoxItem.Info dayItem : monthFolder) {</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">                        if (!monthItem.getName().equals(month)) { // check for correct month</span>
+<span class="nc" id="L63">                            break;</span>
+                        }
+<span class="nc bnc" id="L65" title="All 2 branches missed.">                        if (!dayItem.getName().substring(0, 5).equals(year + &quot;_&quot;)) { // aggregate only processed files</span>
+<span class="nc" id="L66">                            continue;</span>
+                        }
+<span class="nc" id="L68">                        outputList = new ArrayList&lt;String[]&gt;();</span>
+<span class="nc" id="L69">                        destinations = new ArrayList&lt;CensusBlockGroup&gt;();</span>
+<span class="nc" id="L70">                        fileName = dayItem.getName();</span>
+<span class="nc" id="L71">                        AppScreen.updateStatus(&quot;Aggregating file &quot; + fileName);</span>
+<span class="nc" id="L72">                        BoxFile dayFile = (BoxFile) dayItem.getResource(); // recognize boxfile</span>
+<span class="nc" id="L73">                        downloadFile(dayFile); // download CSV from box</span>
+<span class="nc" id="L74">                        currentFile = new File(desktopPath + &quot;/&quot; + fileName); // recognize file locally</span>
+<span class="nc" id="L75">                        reader = new CSVReader(new FileReader(desktopPath + &quot;/&quot; + fileName));</span>
+<span class="nc" id="L76">                        currentFile.delete(); // delete local file</span>
+<span class="nc" id="L77">                        aggregateData();</span>
+<span class="nc" id="L78">                        writeCSV();</span>
+<span class="nc" id="L79">                        outputFile = new File(</span>
+<span class="nc" id="L80">                                desktopPath + &quot;/&quot; + fileName.substring(0, fileName.length() - 4) + &quot;_aggregated.csv&quot;);</span>
+<span class="nc" id="L81">                        uploadFile(monthFolder,</span>
+<span class="nc" id="L82">                                desktopPath + &quot;/&quot; + fileName.substring(0, fileName.length() - 4) + &quot;_aggregated.csv&quot;);</span>
+<span class="nc" id="L83">                        outputFile.delete();</span>
+<span class="nc" id="L84">                    }</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">                    if (monthItem.getName().equals(month)) {</span>
+<span class="nc" id="L86">                        AppScreen.updateStatus(&quot;==========Done processing!==========&quot;);</span>
+                    }
+<span class="nc" id="L88">                }</span>
+<span class="nc" id="L89">            }</span>
+<span class="nc" id="L90">        }</span>
+<span class="nc" id="L91">    }</span>
+
+    private void aggregateData() throws CsvValidationException, IOException {
+<span class="nc" id="L94">        String[] newRow = new String[4];</span>
+<span class="nc" id="L95">        reader.skip(1);</span>
+<span class="nc" id="L96">        currentRow = reader.readNext();</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        while (currentRow != null) {</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">            if (currentOrigin == null) { // it's the very first row</span>
+<span class="nc" id="L99">                currentOrigin = currentRow[1];</span>
+<span class="nc" id="L100">                newRow[0] = currentRow[1];</span>
+<span class="nc" id="L101">                newRow[1] = 0 + &quot;&quot;;</span>
+<span class="nc" id="L102">                newRow[3] = currentRow[0];</span>
+            }
+<span class="nc bnc" id="L104" title="All 4 branches missed.">            if (currentOrigin.equals(currentRow[1]) &amp;&amp; !currentRow[1].equals(currentRow[2])) { // if still same origin</span>
+<span class="nc" id="L105">                newRow[1] = Integer.parseInt(newRow[1]) + Integer.parseInt(currentRow[3]) + &quot;&quot;; // increment</span>
+                                                                                                // origin_count
+<span class="nc" id="L107">                addDestination(currentRow);</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">            } else if (!currentOrigin.equals(currentRow[1])) { // if we've moved on to the next origin</span>
+<span class="nc" id="L109">                outputList.add(newRow);</span>
+<span class="nc" id="L110">                currentOrigin = currentRow[1];</span>
+<span class="nc" id="L111">                newRow = new String[4];</span>
+<span class="nc" id="L112">                newRow[0] = currentRow[1];</span>
+<span class="nc" id="L113">                newRow[1] = currentRow[3];</span>
+<span class="nc" id="L114">                addDestination(currentRow);</span>
+<span class="nc" id="L115">                newRow[3] = currentRow[0];</span>
+            }
+<span class="nc" id="L117">            currentRow = reader.readNext();</span>
+        }
+<span class="nc" id="L119">        reader.close();</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        for (int i = 0; i &lt; outputList.size(); i++) {</span>
+<span class="nc" id="L121">            String[] row = outputList.get(i);</span>
+<span class="nc bnc" id="L122" title="All 4 branches missed.">            if (row[0] == null || destinations == null) {</span>
+<span class="nc" id="L123">                System.out.println(Arrays.toString(row) + i);</span>
+            } else {
+<span class="nc" id="L125">                int index = Collections.binarySearch(destinations, row[0]);</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">                if (index &gt; -1) {</span>
+<span class="nc" id="L127">                    CensusBlockGroup currentDest = destinations.get(index);</span>
+<span class="nc" id="L128">                    row[2] = currentDest.getDeviceCount() + &quot;&quot;;</span>
+<span class="nc" id="L129">                } else {</span>
+<span class="nc" id="L130">                    row[2] = &quot;0&quot;;</span>
+                }
+            }
+        }
+<span class="nc" id="L134">    }</span>
+
+    private void addDestination(String[] row) {
+<span class="nc" id="L137">        int index = Collections.binarySearch(destinations, row[2]);</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">        if (index &gt; -1) {</span>
+<span class="nc" id="L139">            destinations.get(index).incrementDeviceCount(row[3]);</span>
+        } else {
+<span class="nc bnc" id="L141" title="All 4 branches missed.">            if(row[2].chars().allMatch(Character::isDigit)&amp;&amp;row[3].chars().allMatch(Character::isDigit)){</span>
+<span class="nc" id="L142">                destinations.add(-index - 1, new CensusBlockGroup(row[2], row[3]));</span>
+            }
+        }
+<span class="nc" id="L145">    }</span>
+
+    private void downloadFile(BoxFile file) throws IOException {
+<span class="nc" id="L148">        BoxFile.Info info = file.getInfo();</span>
+<span class="nc" id="L149">        FileOutputStream stream = new FileOutputStream(desktopPath + &quot;/&quot; + info.getName());</span>
+<span class="nc" id="L150">        file.download(stream);</span>
+<span class="nc" id="L151">        stream.close();</span>
+<span class="nc" id="L152">    }</span>
+
+    private void uploadFile(BoxFolder location, String fileToUpload)
+            throws IOException, InterruptedException {
+<span class="nc" id="L156">        File myFile = new File(fileToUpload);</span>
+<span class="nc" id="L157">        FileInputStream stream = new FileInputStream(myFile);</span>
+<span class="nc" id="L158">        location.uploadFile(stream, fileName.substring(0, fileName.length() - 4) + &quot;_aggregated.csv&quot;);</span>
+<span class="nc" id="L159">        stream.close();</span>
+<span class="nc" id="L160">    }</span>
+
+    private void writeCSV() throws IOException {
+<span class="nc" id="L163">        CSVWriter writer = new CSVWriter(</span>
+<span class="nc" id="L164">                new FileWriter(desktopPath + &quot;/&quot; + fileName.substring(0, fileName.length() - 4) + &quot;_aggregated.csv&quot;));</span>
+<span class="nc" id="L165">        writer.writeNext(</span>
+                new String[] { &quot;origin_census_block_group&quot;, &quot;origin_count&quot;, &quot;destination_count&quot;, &quot;device_count&quot; });
+<span class="nc" id="L167">        writer.writeAll(outputList);</span>
+<span class="nc" id="L168">        writer.close();</span>
+<span class="nc" id="L169">        AppScreen.completeTask();</span>
+<span class="nc" id="L170">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.4.201905082037</span></div></body></html>

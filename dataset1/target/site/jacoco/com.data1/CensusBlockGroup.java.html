@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CensusBlockGroup.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dataset1</a> &gt; <a href="index.source.html" class="el_package">com.data1</a> &gt; <span class="el_source">CensusBlockGroup.java</span></div><h1>CensusBlockGroup.java</h1><pre class="source lang-java linenums">package com.data1;
+
+import java.util.ArrayList;
+import java.util.Collections;
+
+public class CensusBlockGroup implements Comparable&lt;String&gt; {
+    private String cbgID;
+    private int deviceCount;
+    private ArrayList&lt;CensusBlockGroup&gt; associatedCBG; // Sorted arraylist of CBGs associated with this CBG, such as
+                                                       // destinations associated with an origin
+
+<span class="nc" id="L12">    public CensusBlockGroup(String cbgString) {</span>
+<span class="nc" id="L13">        this.cbgID = cbgString;</span>
+<span class="nc" id="L14">        this.deviceCount = 0;</span>
+<span class="nc" id="L15">        this.associatedCBG = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L16">    }</span>
+
+<span class="nc" id="L18">    public CensusBlockGroup(String cbgString, String deviceCount) {</span>
+<span class="nc" id="L19">        this.cbgID = cbgString;</span>
+<span class="nc" id="L20">        this.deviceCount = Integer.parseInt(deviceCount);</span>
+<span class="nc" id="L21">        this.associatedCBG = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L22">    }</span>
+
+    public int incrementDeviceCount(String newCount) {
+<span class="nc" id="L25">        deviceCount += Integer.parseInt(newCount);</span>
+<span class="nc" id="L26">        return deviceCount;</span>
+    }
+
+    public void addAssociatedCBG(CensusBlockGroup newCBG) {
+<span class="nc" id="L30">        int index = Collections.binarySearch(associatedCBG, newCBG.cbgID);</span>
+<span class="nc bnc" id="L31" title="All 2 branches missed.">        if (index &gt; -1) {</span>
+<span class="nc" id="L32">            CensusBlockGroup cbg = associatedCBG.get(index);</span>
+<span class="nc" id="L33">            cbg.incrementDeviceCount(newCBG.deviceCount + &quot;&quot;);</span>
+<span class="nc" id="L34">        } else {</span>
+<span class="nc" id="L35">            associatedCBG.add(-index - 1, newCBG);</span>
+        }
+<span class="nc" id="L37">    }</span>
+
+    public ArrayList&lt;CensusBlockGroup&gt; getAssociatedCBG() {
+<span class="nc" id="L40">        return associatedCBG;</span>
+    }
+
+    public String getCbgID() {
+<span class="nc" id="L44">        return cbgID;</span>
+    }
+
+    public int getDeviceCount() {
+<span class="nc" id="L48">        return deviceCount;</span>
+    }
+
+    @Override
+    public int compareTo(String otherID) {
+<span class="nc" id="L53">        return this.cbgID.compareTo(otherID);</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L58">        return cbgID;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.4.201905082037</span></div></body></html>

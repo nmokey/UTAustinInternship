@@ -54,6 +54,9 @@ public class FileProcessor {
         AppScreen.updateStatus("==========Processing files==========");
         BoxFolder rootFolder = BoxFolder.getRootFolder(api);
         for (BoxItem.Info dataItem : rootFolder) {
+            if(!dataItem.getName().equals("daily-social-distancing-v2")){
+                break;
+            }
             BoxFolder dataFolder = ((BoxFolder.Info) dataItem).getResource();
             for (BoxItem.Info yearItem : dataFolder) {
                 BoxFolder yearFolder = ((BoxFolder.Info) yearItem).getResource();
