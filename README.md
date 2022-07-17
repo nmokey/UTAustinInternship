@@ -1,10 +1,10 @@
 ![Visual Studio Code](https://img.shields.io/badge/Visual%20Studio%20Code-0078d7.svg?style=flat&logo=visual-studio-code&logoColor=white) 
 ![Java](https://img.shields.io/badge/java-%23ED8B00.svg?style=flat&logo=java&logoColor=white) 
 ![Apache Maven](https://img.shields.io/badge/Apache%20Maven-C71A36?style=flat&logo=Apache%20Maven&logoColor=white) 
-![Stack Overflow](https://img.shields.io/badge/-Stackoverflow-FE7A16?style=flat&logo=stack-overflow&logoColor=white)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/nmokey/UTAustinInternship?style=flat) 
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/nmokey/UTAustinInternship?style=flat)
 ![GitHub](https://img.shields.io/github/license/nmokey/UTAustinInternship) 
+![GitHub all releases](https://img.shields.io/github/downloads/nmokey/UTAustinInternship/total)
 # UT Austin Internship
 Code written for my summer of 2022 internship at UT Austin (6/22/22 - 7/27/22) with Ph.D student Yefu Chen.
 
@@ -20,3 +20,4 @@ Initial task. Take one day's (08/01/2020) OD data `.csv` file and process it int
 <img src="https://user-images.githubusercontent.com/77017591/179374628-213fd4d2-5bb2-4506-9941-0da73421d794.png" width="45%"></img> 
 <img src="https://user-images.githubusercontent.com/77017591/179374946-acf0c759-ea75-4e35-a716-9b961f80cfb4.png" width="45%"></img> 
 <img src="https://user-images.githubusercontent.com/77017591/179374919-cd07452f-c103-4f72-99b8-d6131e0a05c7.png" width="45%"></img> 
+<sub> This project is licensed under the terms of the MIT license. </sub>
