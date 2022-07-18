@@ -23,8 +23,6 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
-import java.lang.ClassLoader;
-
 import com.box.sdk.BoxAPIConnection;
 import com.opencsv.exceptions.CsvException;
 
@@ -125,7 +123,6 @@ public class AppScreen {
                     if (getAggregateDateRange()) {
                         String yearInput = dateRange[0], monthInput = dateRange[1];
                         updateStatus("Enter authcode obtained from browser");
-                        java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));
                         if (getAPI()) {
                             new FileAggregator(yearInput, monthInput, api);
                         } else {
@@ -160,7 +157,7 @@ public class AppScreen {
     }
 
     private boolean getAPI() throws IOException {
-        if(this.hasAPI){
+        if (this.hasAPI) {
             return true;
         }
         java.awt.Desktop.getDesktop().browse(java.net.URI.create(AUTH_URL));

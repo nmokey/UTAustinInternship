@@ -5,10 +5,12 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.zip.GZIPInputStream;
+
 import com.box.sdk.BoxAPIConnection;
 import com.box.sdk.BoxFile;
 import com.box.sdk.BoxFolder;
 import com.box.sdk.BoxItem;
+
 import me.tongfei.progressbar.ProgressBar;
 
 public class FileOrganizer {
@@ -23,6 +25,9 @@ public class FileOrganizer {
         unzipFiles();
     }
 
+    /**
+     * @since 1.0.0
+     */
     private void rearrangeFiles() {
         BoxFolder rootFolder = BoxFolder.getRootFolder(api);
         for (BoxItem.Info dataItem : rootFolder) {
@@ -47,6 +52,11 @@ public class FileOrganizer {
         }
     }
 
+    /**
+     * @throws IOException
+     * @throws InterruptedException
+     * @since 1.0.0
+     */
     private void unzipFiles() throws IOException, InterruptedException {
         BoxFolder rootFolder = BoxFolder.getRootFolder(api);
         for (BoxItem.Info dataItem : rootFolder) {
@@ -91,6 +101,10 @@ public class FileOrganizer {
         stream.close();
     }
 
+    /**
+     * @param name
+     * @since 1.0.0
+     */
     private void decompress(String name) {
         String sourceFile = name;
         String targetFile = name.substring(0, 32);

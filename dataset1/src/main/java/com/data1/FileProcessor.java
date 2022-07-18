@@ -54,7 +54,7 @@ public class FileProcessor {
         AppScreen.updateStatus("==========Processing files==========");
         BoxFolder rootFolder = BoxFolder.getRootFolder(api);
         for (BoxItem.Info dataItem : rootFolder) {
-            if(!dataItem.getName().equals("daily-social-distancing-v2")){
+            if (!dataItem.getName().equals("daily-social-distancing-v2")) {
                 break;
             }
             BoxFolder dataFolder = ((BoxFolder.Info) dataItem).getResource();
@@ -143,7 +143,7 @@ public class FileProcessor {
                 if (newDest.substring(1, 13).equals(seenDest.substring(1, 13))) {
                     int incremented = Integer.parseInt(newDest.substring(15))
                             + Integer.parseInt(seenDest.substring(15));
-                    seenDest = seenDest.split(":")[0] +":"+ incremented;
+                    seenDest = seenDest.split(":")[0] + ":" + incremented;
                     break; // move onto next newDest
                 }
                 destinationCounter--;
@@ -184,7 +184,7 @@ public class FileProcessor {
         AppScreen.updateStatus("Writing file month" + month + ".csv");
         CSVWriter writer = new CSVWriter(
                 new FileWriter(desktopPath + "/" + year + "_" + month + formatDay(startDate) + "-" + month
-                        + formatDay(Integer.parseInt(days)+Integer.parseInt(startDate)-1+"") + ".csv"));
+                        + formatDay(Integer.parseInt(days) + Integer.parseInt(startDate) - 1 + "") + ".csv"));
         writingProgress = new ProgressBar("Writing csv file: ", processedData.size());
         writer.writeNext(
                 new String[] { "device_count", "origin_census_block_group", "destination", "destination_count" });
@@ -200,11 +200,11 @@ public class FileProcessor {
     }
 
     private String[] buildRow(String[] oldRow, String destination) {
-            String[] newRow = new String[4];
-            newRow[0] = oldRow[3];
-            newRow[1] = oldRow[0];
-            newRow[2] = destination.substring(1, 13);
-            newRow[3] = destination.split(":")[1];
-            return newRow;
+        String[] newRow = new String[4];
+        newRow[0] = oldRow[3];
+        newRow[1] = oldRow[0];
+        newRow[2] = destination.substring(1, 13);
+        newRow[3] = destination.split(":")[1];
+        return newRow;
     }
 }
