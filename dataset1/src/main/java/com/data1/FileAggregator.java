@@ -7,9 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -21,13 +19,14 @@ import com.box.sdk.BoxItem;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvException;
+import com.opencsv.exceptions.CsvValidationException;
 
 import me.tongfei.progressbar.ProgressBar;
 
 public class FileAggregator {
     private String[] currentRow;
     private ArrayList<CensusBlockGroup> destinations;
-    private static List<String[]> sociodemographicData;
+    private static List<SociodemographicGroup> sociodemographicData;
     private CSVReader processedDataReader, sociodemographicReader;
     private List<String[]> outputList;
     private BoxAPIConnection api;
@@ -37,24 +36,13 @@ public class FileAggregator {
     private ProgressBar readingProgressBar;
 
     public FileAggregator(String year, String month, BoxAPIConnection api)
-            throws IOException, CsvException, InterruptedException {
+            throws InterruptedException, IOException, CsvException {
         this.year = year;
         this.month = month;
         desktop = new File(System.getProperty("user.home"), "/Desktop");
         desktopPath = desktop.getAbsolutePath();
         this.api = api;
-        if (sociodemographicData == null) {
-            sociodemographicReader = new CSVReader(
-                    new FileReader("UTAustinInternship/dataset1/src/main/resources/ACS_summary.csv"));
-            sociodemographicReader.skip(1);
-            sociodemographicData = sociodemographicReader.readAll();
-            // for (int i = 0; i < sociodemographicData.size(); i++) {
-            // String[] row = sociodemographicData.get(i);
-            // row[0] = row[0].substring(9);
-            // readingProgressBar.step();
-            // }
-        }
-        sociodemographicReader.close();
+        readSociodemographicData();
         retrieveFiles();
     }
 
@@ -108,19 +96,40 @@ public class FileAggregator {
         }
     }
 
+    private void readSociodemographicData() throws IOException, CsvValidationException {
+        if (sociodemographicData == null) {
+            AppScreen.updateStatus("Reading sociodemographic data");
+            sociodemographicData = new ArrayList<SociodemographicGroup>();
+            readingProgressBar = new ProgressBar("Reading sociodemographic data: ", 217740);
+            sociodemographicReader = new CSVReader(
+                    new FileReader("UTAustinInternship/dataset1/src/main/resources/ACS_summary.csv"));
+            sociodemographicReader.skip(1);
+            String[] dataRow = sociodemographicReader.readNext();
+            while (dataRow != null) {
+                sociodemographicData.add(new SociodemographicGroup(dataRow));
+                dataRow = sociodemographicReader.readNext();
+                readingProgressBar.step();
+            }
+            sociodemographicReader.close();
+            AppScreen.completeTask();
+        }
+    }
+
     /**
      * @throws IOException
      * @throws CsvException
      * @since 1.1.0
      */
     private void aggregateData() throws IOException, CsvException {
-        String[] newRow = new String[19];
+        String[] newRow = new String[4];
         processedDataReader.skip(1);
         currentRow = processedDataReader.readNext();
-        while (currentRow != null) {
+        readingProgressBar = new ProgressBar("Aggregating origin information: ", 220000);
+        while (currentRow != null) { // TODO: this loop runs extremely fast... why doesn't processing? research
+                                     // question.
             if (currentOrigin == null) { // it's the very first row
                 currentOrigin = currentRow[1];
-                newRow[0] = "1500000US" + currentRow[1];
+                newRow[0] = currentRow[1];
                 newRow[1] = 0 + "";
                 newRow[3] = currentRow[0];
             }
@@ -131,30 +140,29 @@ public class FileAggregator {
             } else if (!currentOrigin.equals(currentRow[1])) { // if we've moved on to the next origin
                 outputList.add(newRow);
                 currentOrigin = currentRow[1];
-                newRow = new String[19];
-                newRow[0] = "1500000US" + currentRow[1];
+                newRow = new String[4];
+                newRow[0] = currentRow[1];
                 newRow[1] = currentRow[3];
                 addDestination(currentRow);
                 newRow[3] = currentRow[0];
             }
             currentRow = processedDataReader.readNext();
+            readingProgressBar.step();
         }
         processedDataReader.close();
-        readingProgressBar = new ProgressBar("Reading sociodemographic data: ", outputList.size());
+        readingProgressBar = new ProgressBar("Adding destination_count and sociodemographic data: ", outputList.size());
         for (int i = 0; i < outputList.size(); i++) {
-            String[] row = outputList.get(i);
-            if (row[0] == null || destinations == null) {
-                System.out.println(Arrays.toString(row) + i);
-            } else {
-                int destinationIndex = Collections.binarySearch(destinations, row[0]);
+            String[] outputRow = outputList.get(i);
+            if (outputRow[0] != null) {
+                int destinationIndex = Collections.binarySearch(destinations, outputRow[0]);
                 if (destinationIndex > -1) {
                     CensusBlockGroup currentDest = destinations.get(destinationIndex);
-                    row[2] = currentDest.getDeviceCount() + "";
+                    outputRow[2] = currentDest.getDeviceCount() + "";
                 } else {
-                    row[2] = "0";
+                    outputRow[2] = "0";
                 }
             }
-            addSociodemographicData(row);
+            addSociodemographicData(outputRow, i);
             readingProgressBar.step();
         }
     }
@@ -166,12 +174,12 @@ public class FileAggregator {
      * @since 1.1.0
      */
     private void addDestination(String[] row) throws IOException, CsvException {
-        int index = Collections.binarySearch(destinations, row[2]);
-        if (index > -1) {
-            destinations.get(index).incrementDeviceCount(row[3]);
+        int destinationIndex = Collections.binarySearch(destinations, row[2]);
+        if (destinationIndex > -1) {
+            destinations.get(destinationIndex).incrementDeviceCount(row[3]);
         } else {
             if (row[2].chars().allMatch(Character::isDigit) && row[3].chars().allMatch(Character::isDigit)) {
-                destinations.add(-index - 1, new CensusBlockGroup(row[2], row[3]));
+                destinations.add(-destinationIndex - 1, new CensusBlockGroup(row[2], row[3]));
             }
         }
     }
@@ -180,16 +188,15 @@ public class FileAggregator {
      * @param row
      * @since 1.2.0
      */
-    private void addSociodemographicData(String[] row) {
-        int originIndex = Collections.binarySearch(sociodemographicData, row, new Comparator<String[]>() {
-            @Override
-            public int compare(String[] o1, String[] o2) {
-                return o1[0].compareTo(o2[0]);
-            }
-        });
+    private void addSociodemographicData(String[] row, int i) {
+        if(row[0]==null){
+            return;
+        }
+        int originIndex = Collections.binarySearch(sociodemographicData, row[0]);
         if (originIndex > -1) {
-            String[] sociodemographicDataRow = sociodemographicData.get(originIndex);
-            row = ArrayUtils.addAll(row, sociodemographicDataRow);
+            SociodemographicGroup group = sociodemographicData.get(originIndex);
+            row = ArrayUtils.addAll(row, group.getData());
+            outputList.set(i, row);
         }
     }
 
@@ -206,15 +213,19 @@ public class FileAggregator {
         FileInputStream stream = new FileInputStream(myFile);
         location.uploadFile(stream, fileName.substring(0, fileName.length() - 4) + "_aggregated.csv");
         stream.close();
+        AppScreen.completeTask();
     }
 
     private void writeCSV() throws IOException {
         CSVWriter writer = new CSVWriter(
                 new FileWriter(desktopPath + "/" + fileName.substring(0, fileName.length() - 4) + "_aggregated.csv"));
         writer.writeNext(
-                new String[] { "origin_census_block_group", "origin_count", "destination_count", "device_count" });
+                new String[] { "origin_census_block_group", "origin_count", "destination_count", "device_count",
+                        "median_age", "medianHHincome", "rate_POPworker", "n_pop", "rate_WorkerDriveAlone",
+                        "rate_WorkerBus", "rate_WorkerSubway", "rate_WorkerTrain", "rate_WorkerWalk",
+                        "rate_POPwhitealone", "rate_POPafrican", "rate_POPnative", "rate_POPasian", "rate_POPmale",
+                        "rate_HHwithChild" });
         writer.writeAll(outputList);
         writer.close();
-        AppScreen.completeTask();
     }
 }

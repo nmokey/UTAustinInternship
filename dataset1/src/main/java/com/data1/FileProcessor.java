@@ -181,7 +181,8 @@ public class FileProcessor {
     }
 
     private void writeCSV(String month) throws IOException {
-        AppScreen.updateStatus("Writing file month" + month + ".csv");
+        AppScreen.updateStatus("Writing file month" + year + "_" + month + formatDay(startDate) + "-" + month
+        + formatDay(Integer.parseInt(days) + Integer.parseInt(startDate) - 1 + "") + ".csv");
         CSVWriter writer = new CSVWriter(
                 new FileWriter(desktopPath + "/" + year + "_" + month + formatDay(startDate) + "-" + month
                         + formatDay(Integer.parseInt(days) + Integer.parseInt(startDate) - 1 + "") + ".csv"));
