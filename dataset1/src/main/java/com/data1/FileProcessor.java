@@ -144,7 +144,7 @@ public class FileProcessor {
                     int incremented = Integer.parseInt(newDest.substring(15))
                             + Integer.parseInt(seenDest.substring(15));
                     seenDest = seenDest.split(":")[0] + ":" + incremented;
-                    seenDestinations.set(i, seenDest);
+                    seenDestinations.set(i, seenDest); // TODO: REMOVING THIS LINE BREAKS THE PROCESSOR. DON'T BREAK AGAIN!!
                     break; // move onto next newDest
                 }
                 destinationCounter--;

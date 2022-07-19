@@ -102,7 +102,7 @@ public class FileAggregator {
             sociodemographicData = new ArrayList<SociodemographicGroup>();
             readingProgressBar = new ProgressBar("Reading sociodemographic data: ", 217740);
             sociodemographicReader = new CSVReader(
-                    new FileReader("UTAustinInternship/dataset1/src/main/resources/ACS_summary.csv"));
+                    new FileReader(ClassLoader.getSystemResource("ACS_summary.csv").getFile()));
             sociodemographicReader.skip(1);
             String[] dataRow = sociodemographicReader.readNext();
             while (dataRow != null) {
@@ -196,7 +196,7 @@ public class FileAggregator {
         if (originIndex > -1) {
             SociodemographicGroup group = sociodemographicData.get(originIndex);
             row = ArrayUtils.addAll(row, group.getData());
-            outputList.set(i, row);
+            outputList.set(i, row); //TODO: find out why this line is required...
         }
     }
 
