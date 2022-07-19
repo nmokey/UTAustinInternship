@@ -5,7 +5,7 @@
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/nmokey/UTAustinInternship?style=flat)](https://github.com/nmokey/UTAustinInternship/releases)
 [![GitHub all releases](https://img.shields.io/github/downloads/nmokey/UTAustinInternship/total)](https://github.com/nmokey/UTAustinInternship/releases)
-[![Man Hours](https://img.shields.io/endpoint?url=https%3A%2F%2Fmh.jessemillar.com%2Fhours%3Frepo%3Dhttps%3A%2F%2Fgithub.com%2Fnmokey%2FUTAustinInternship.git)](https://github.com/jessemillar/man-hours-badge#man-hours-badge)
+![Man Hours](https://img.shields.io/endpoint?url=https%3A%2F%2Fmh.jessemillar.com%2Fhours%3Frepo%3Dhttps%3A%2F%2Fgithub.com%2Fnmokey%2FUTAustinInternship.git)
 ![HitCount](https://hits.dwyl.com/nmokey/UTAustinInternship.svg?style=flat)
 [![GitHub license](https://img.shields.io/github/license/nmokey/UTAustinInternship)](https://github.com/nmokey/UTAustinInternship/blob/main/LICENSE)
 # UT Austin Internship

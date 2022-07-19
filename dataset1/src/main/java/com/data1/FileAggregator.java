@@ -189,7 +189,7 @@ public class FileAggregator {
      * @since 1.2.0
      */
     private void addSociodemographicData(String[] row, int i) {
-        if(row[0]==null){
+        if (row[0] == null) {
             return;
         }
         int originIndex = Collections.binarySearch(sociodemographicData, row[0]);
