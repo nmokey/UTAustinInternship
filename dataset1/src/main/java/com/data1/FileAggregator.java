@@ -53,7 +53,7 @@ public class FileAggregator {
      * @since 1.1.0
      */
     private void retrieveFiles() throws IOException, CsvException, InterruptedException {
-        AppScreen.updateStatus("==========Aggregating Data of month " + month + "==========");
+        AppScreen.updateStatus("==========Aggregating data of month " + month + "==========");
         BoxFolder rootFolder = BoxFolder.getRootFolder(api);
         for (BoxItem.Info dataItem : rootFolder) {
             BoxFolder dataFolder = ((BoxFolder.Info) dataItem).getResource();
@@ -89,7 +89,7 @@ public class FileAggregator {
                         outputFile.delete();
                     }
                     if (monthItem.getName().equals(month)) {
-                        AppScreen.updateStatus("==========Done processing!==========");
+                        AppScreen.updateStatus("==========Done aggregating!==========");
                     }
                 }
             }
