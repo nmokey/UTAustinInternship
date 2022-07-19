@@ -6,11 +6,13 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.jline.utils.InputStreamReader;
 
 import com.box.sdk.BoxAPIConnection;
 import com.box.sdk.BoxFile;
@@ -36,7 +38,7 @@ public class FileAggregator {
     private ProgressBar readingProgressBar;
 
     public FileAggregator(String year, String month, BoxAPIConnection api)
-            throws InterruptedException, IOException, CsvException {
+            throws InterruptedException, IOException, CsvException, URISyntaxException {
         this.year = year;
         this.month = month;
         desktop = new File(System.getProperty("user.home"), "/Desktop");
@@ -96,13 +98,14 @@ public class FileAggregator {
         }
     }
 
-    private void readSociodemographicData() throws IOException, CsvValidationException {
+    private void readSociodemographicData() throws IOException, CsvValidationException, URISyntaxException {
         if (sociodemographicData == null) {
+            InputStreamReader dataFileReader = new InputStreamReader(
+                    ClassLoader.getSystemResourceAsStream("ACS_summary.csv"));
             AppScreen.updateStatus("Reading sociodemographic data");
             sociodemographicData = new ArrayList<SociodemographicGroup>();
             readingProgressBar = new ProgressBar("Reading sociodemographic data: ", 217740);
-            sociodemographicReader = new CSVReader(
-                    new FileReader(ClassLoader.getSystemResource("ACS_summary.csv").getFile()));
+            sociodemographicReader = new CSVReader(dataFileReader);
             sociodemographicReader.skip(1);
             String[] dataRow = sociodemographicReader.readNext();
             while (dataRow != null) {
@@ -196,7 +199,7 @@ public class FileAggregator {
         if (originIndex > -1) {
             SociodemographicGroup group = sociodemographicData.get(originIndex);
             row = ArrayUtils.addAll(row, group.getData());
-            outputList.set(i, row); //TODO: find out why this line is required...
+            outputList.set(i, row); // TODO: find out why this line is required...
         }
     }
 

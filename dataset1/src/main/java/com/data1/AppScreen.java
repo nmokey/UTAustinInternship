@@ -7,6 +7,7 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -131,7 +132,7 @@ public class AppScreen {
                     } else {
                         failTask();
                     }
-                } catch (IOException | CsvException | InterruptedException e1) {
+                } catch (IOException | CsvException | InterruptedException | URISyntaxException e1) {
                     e1.printStackTrace();
                 }
             }
