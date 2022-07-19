@@ -20,6 +20,15 @@
     <jacoco.unit-tests.limit.class-complexity>20</jacoco.unit-tests.limit.class-complexity>
     <jacoco.unit-tests.limit.method-complexity>5</jacoco.unit-tests.limit.method-complexity>
   </properties>
+
+  <licenses>
+      <license>
+          <name>MIT</name>
+          <url>http://opensource.org/licenses/MIT</url>
+          <distribution>repo</distribution>
+      </license>
+  </licenses>
+      
   <dependencies>
     <dependency>
         <groupId>me.tongfei</groupId>

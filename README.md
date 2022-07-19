@@ -6,7 +6,7 @@
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/nmokey/UTAustinInternship?style=flat)](https://github.com/nmokey/UTAustinInternship/releases)
 [![GitHub all releases](https://img.shields.io/github/downloads/nmokey/UTAustinInternship/total)](https://github.com/nmokey/UTAustinInternship/releases)
 [![Man Hours](https://img.shields.io/endpoint?url=https%3A%2F%2Fmh.jessemillar.com%2Fhours%3Frepo%3Dhttps%3A%2F%2Fgithub.com%2Fnmokey%2FUTAustinInternship.git)](https://github.com/jessemillar/man-hours-badge#man-hours-badge)
-![HitCount](https://hits.dwyl.com/nmokey/UTAustinInternship.svg?style=flat&show=unique)
+![HitCount](https://hits.dwyl.com/nmokey/UTAustinInternship.svg?style=flat)
 [![GitHub license](https://img.shields.io/github/license/nmokey/UTAustinInternship)](https://github.com/nmokey/UTAustinInternship/blob/main/LICENSE)
 # UT Austin Internship
 Code written for my summer of 2022 internship at UT Austin (6/22/22 - 7/27/22) with Ph.D student Yefu Chen.
