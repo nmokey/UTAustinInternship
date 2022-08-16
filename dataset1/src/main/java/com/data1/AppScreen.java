@@ -40,6 +40,8 @@ public class AppScreen {
     private String[] dateRange = new String[4];
     private String authcode;
     private boolean hasAPI = false;
+    private boolean hasDataLocation = false;
+    private boolean dataInRootFolder;
     private BoxAPIConnection api;
 
     public AppScreen() throws IOException {
@@ -81,6 +83,7 @@ public class AppScreen {
         organizeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
+                    getDataLocation();
                     updateStatus("Enter authcode obtained from browser");
                     if (getAPI()) {
                         new FileOrganizer(api);
@@ -98,17 +101,19 @@ public class AppScreen {
         processButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    if (getProcessDateRange()) {
-                        String yearInput = dateRange[0], monthInput = dateRange[1], dayInput = dateRange[2],
-                                startInput = dateRange[3];
-                        updateStatus("Enter authcode obtained from browser");
-                        if (getAPI()) {
-                            new FileProcessor(yearInput, monthInput, dayInput, startInput, api);
+                    if (getDataLocation()) {
+                        if (getProcessDateRange()) {
+                            String yearInput = dateRange[0], monthInput = dateRange[1], dayInput = dateRange[2],
+                                    startInput = dateRange[3];
+                            updateStatus("Enter authcode obtained from browser");
+                            if (getAPI()) {
+                                new FileProcessor(yearInput, monthInput, dayInput, startInput, api, dataInRootFolder);
+                            } else {
+                                failTask();
+                            }
                         } else {
                             failTask();
                         }
-                    } else {
-                        failTask();
                     }
                 } catch (IOException | CsvException | InterruptedException e1) {
                     e1.printStackTrace();
@@ -121,16 +126,18 @@ public class AppScreen {
         aggregateButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    if (getAggregateDateRange()) {
-                        String yearInput = dateRange[0], monthInput = dateRange[1];
-                        updateStatus("Enter authcode obtained from browser");
-                        if (getAPI()) {
-                            new FileAggregator(yearInput, monthInput, api);
+                    if (getDataLocation()) {
+                        if (getAggregateDateRange()) {
+                            String yearInput = dateRange[0], monthInput = dateRange[1];
+                            updateStatus("Enter authcode obtained from browser");
+                            if (getAPI()) {
+                                new FileAggregator(yearInput, monthInput, api, dataInRootFolder);
+                            } else {
+                                failTask();
+                            }
                         } else {
                             failTask();
                         }
-                    } else {
-                        failTask();
                     }
                 } catch (IOException | CsvException | InterruptedException | URISyntaxException e1) {
                     e1.printStackTrace();
@@ -155,6 +162,26 @@ public class AppScreen {
         statusField.setBorder(new EmptyBorder(new Insets(15, 15, 15, 15)));
         statusField.setText("Welcome to the data manager!");
         frame.add(scroller);
+    }
+
+    private boolean getDataLocation() {
+        if (this.hasDataLocation) {
+            return true;
+        }
+        updateStatus("Select data folder location");
+        String[] options = new String[] {
+                "/Urban Information Lab/COVID19_research/SafeGraph/SDM_daily_v2/daily-social-distancing-v2",
+                "/daily-social-distancing-v2" };
+        String chosenFolder = (String) JOptionPane.showInputDialog(frame, "Please select data folder location: ",
+                "Data Folder Selection", JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+        if (chosenFolder == null) {
+            failTask();
+            return false;
+        }
+        dataInRootFolder = chosenFolder.equals("/daily-social-distancing-v2") ? true : false;
+        hasDataLocation = true;
+        completeTask();
+        return true;
     }
 
     private boolean getAPI() throws IOException {

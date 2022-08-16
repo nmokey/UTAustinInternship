@@ -31,13 +31,16 @@ public class FileProcessor {
     private File currentFile, desktop;
     private String year, month, days, startDate;
     private String desktopPath;
+    private Boolean dataInRoot;
 
-    public FileProcessor(String year, String month, String days, String startDate, BoxAPIConnection api)
+    public FileProcessor(String year, String month, String days, String startDate, BoxAPIConnection api,
+            Boolean dataInRoot)
             throws IOException, CsvException, InterruptedException {
         this.year = year;
         this.month = month;
         this.days = days;
         this.startDate = startDate;
+        this.dataInRoot = dataInRoot;
         this.api = api;
         desktop = new File(System.getProperty("user.home"), "/Desktop");
         desktopPath = desktop.getAbsolutePath();
@@ -53,6 +56,28 @@ public class FileProcessor {
     private void retrieveFiles() throws IOException, CsvException, InterruptedException {
         AppScreen.updateStatus("==========Processing files==========");
         BoxFolder rootFolder = BoxFolder.getRootFolder(api);
+        if (!dataInRoot) {
+            for (BoxItem.Info layer1 : rootFolder) {
+                if (layer1.getName().equals("Urban Information Lab")) {
+                    BoxFolder layer1Folder = ((BoxFolder.Info) layer1).getResource();
+                    for (BoxItem.Info layer2 : layer1Folder) {
+                        if (layer2.getName().equals("COVID19_research")) {
+                            BoxFolder layer2Folder = ((BoxFolder.Info) layer2).getResource();
+                            for (BoxItem.Info layer3 : layer2Folder) {
+                                if (layer3.getName().equals("SafeGraph")) {
+                                    BoxFolder layer3Folder = ((BoxFolder.Info) layer3).getResource();
+                                    for (BoxItem.Info layer4 : layer3Folder) {
+                                        if (layer4.getName().equals("SDM_daily_v2")) {
+                                            rootFolder = ((BoxFolder.Info) layer4).getResource();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         for (BoxItem.Info dataItem : rootFolder) {
             if (!dataItem.getName().equals("daily-social-distancing-v2")) {
                 break;
@@ -183,7 +208,7 @@ public class FileProcessor {
 
     private void writeCSV(String month) throws IOException {
         AppScreen.updateStatus("Writing file month" + year + "_" + month + formatDay(startDate) + "-" + month
-        + formatDay(Integer.parseInt(days) + Integer.parseInt(startDate) - 1 + "") + ".csv");
+                + formatDay(Integer.parseInt(days) + Integer.parseInt(startDate) - 1 + "") + ".csv");
         CSVWriter writer = new CSVWriter(
                 new FileWriter(desktopPath + "/" + year + "_" + month + formatDay(startDate) + "-" + month
                         + formatDay(Integer.parseInt(days) + Integer.parseInt(startDate) - 1 + "") + ".csv"));

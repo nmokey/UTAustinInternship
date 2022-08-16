@@ -36,11 +36,14 @@ public class FileAggregator {
     private String year, month, currentOrigin;
     private String desktopPath, fileName;
     private ProgressBar readingProgressBar;
+    private boolean dataInRoot;
 
-    public FileAggregator(String year, String month, BoxAPIConnection api)
+    public FileAggregator(String year, String month, BoxAPIConnection api, Boolean dataInRoot)
             throws InterruptedException, IOException, CsvException, URISyntaxException {
         this.year = year;
         this.month = month;
+        this.dataInRoot = dataInRoot;
+        System.out.println(dataInRoot);
         desktop = new File(System.getProperty("user.home"), "/Desktop");
         desktopPath = desktop.getAbsolutePath();
         this.api = api;
@@ -57,6 +60,29 @@ public class FileAggregator {
     private void retrieveFiles() throws IOException, CsvException, InterruptedException {
         AppScreen.updateStatus("==========Aggregating data of month " + month + "==========");
         BoxFolder rootFolder = BoxFolder.getRootFolder(api);
+        System.out.println(dataInRoot);
+        if (dataInRoot == false) {
+            for (BoxItem.Info layer1 : rootFolder) {
+                if (layer1.getName().equals("Urban Information Lab")) {
+                    BoxFolder layer1Folder = ((BoxFolder.Info) layer1).getResource();
+                    for (BoxItem.Info layer2 : layer1Folder) {
+                        if (layer2.getName().equals("COVID19_research")) {
+                            BoxFolder layer2Folder = ((BoxFolder.Info) layer2).getResource();
+                            for (BoxItem.Info layer3 : layer2Folder) {
+                                if (layer3.getName().equals("SafeGraph")) {
+                                    BoxFolder layer3Folder = ((BoxFolder.Info) layer3).getResource();
+                                    for (BoxItem.Info layer4 : layer3Folder) {
+                                        if (layer4.getName().equals("SDM_daily_v2")) {
+                                            rootFolder = ((BoxFolder.Info) layer4).getResource();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         for (BoxItem.Info dataItem : rootFolder) {
             BoxFolder dataFolder = ((BoxFolder.Info) dataItem).getResource();
             for (BoxItem.Info yearItem : dataFolder) {
