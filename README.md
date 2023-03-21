@@ -5,7 +5,6 @@
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/nmokey/UTAustinInternship?style=flat)](https://github.com/nmokey/UTAustinInternship/releases)
 [![GitHub all releases](https://img.shields.io/github/downloads/nmokey/UTAustinInternship/total)](https://github.com/nmokey/UTAustinInternship/releases)
-![Man Hours](https://img.shields.io/endpoint?url=https%3A%2F%2Fmh.jessemillar.com%2Fhours%3Frepo%3Dhttps%3A%2F%2Fgithub.com%2Fnmokey%2FUTAustinInternship.git)
 ![HitCount](https://hits.dwyl.com/nmokey/UTAustinInternship.svg?style=flat)
 [![GitHub license](https://img.shields.io/github/license/nmokey/UTAustinInternship)](https://github.com/nmokey/UTAustinInternship/blob/main/LICENSE)
 # UT Austin Internship
@@ -13,8 +12,8 @@ Code written for my summer of 2022 internship at UT Austin (6/22/22 - 7/27/22) w
 
 > [UT Austin Internship](#ut-austin-internship)
 >>[test1](#test1-62222)  
->>[dataset1](#dataset1-62322---71922)  
-
+>>[dataset1](#dataset1-62322---71922)
+>
 >[How to use the Data Manager app](#how-to-use-the-data-manager-app)  
 >>[File Organizer](#file-organizer)  
 >>[File Processor](#file-processor)  
